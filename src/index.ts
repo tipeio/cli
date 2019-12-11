@@ -1,2 +1,1 @@
-const me: string = 'tipe'
-console.log(me)
+import * as prog from 'caporal'
