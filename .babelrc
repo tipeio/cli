@@ -1,6 +1,11 @@
 {
-  "presets": ["@babel/env", "@babel/typescript"],
+  "presets": [["@babel/env", {
+    "targets": {
+      "node": "6"
+    }
+  }], "@babel/typescript"],
   "plugins": [
+    "@babel/plugin-transform-async-to-generator",
     "@babel/plugin-proposal-numeric-separator",
     "@babel/plugin-proposal-class-properties",
     "@babel/plugin-proposal-object-rest-spread"
