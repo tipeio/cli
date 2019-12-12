@@ -1,11 +1,11 @@
 import iq from 'inquirer'
-import { Project, Env } from '../types'
+import { Project, Env, PromptHooks, PromptConfig } from '../types'
 
-const project = (projects: Project[]): iq.ListQuestion => {
+const project = (config: PromptConfig): iq.ListQuestion => {
   const projectChoices = [
     { name: 'Create new project', value: { id: 0 } },
     new iq.Separator(),
-    ...projects.map(p => ({
+    ...config.projects!.map(p => ({
       name: p.name,
       value: p,
     })),
@@ -20,7 +20,7 @@ const project = (projects: Project[]): iq.ListQuestion => {
   }
 }
 
-const newProject = (): iq.InputQuestion => ({
+const newProject = (config: PromptConfig): iq.InputQuestion => ({
   name: 'newProject',
   message: 'Name your project',
   default: 'My Tipe project',
@@ -28,26 +28,28 @@ const newProject = (): iq.InputQuestion => ({
     const { project } = answers
     return project.id === 0
   },
+  filter: config.hooks!.createProject,
 })
 
-const newEnv = (when?: Function): iq.InputQuestion => ({
+const newEnv = (config: PromptConfig = {}): iq.InputQuestion => ({
   name: 'newEnv',
   message: 'Name your environment',
   default: 'production',
   when(answers: iq.Answers): boolean {
-    return when ? when(answers) : Boolean(answers.newProject)
+    return config.when ? config.when(answers) : Boolean(answers.newProject)
   },
+  filter: config.hooks!.createEnv,
 })
 
-const envPrivate = (when?: Function): iq.ConfirmQuestion => {
+const envPrivate = (config: PromptConfig = {}): iq.ConfirmQuestion => {
   return {
     name: 'envPrivate',
     type: 'confirm',
     message(answers: iq.Answers): string {
-      return `Private environments need an API to read content. Should ${answers.newEnv} be Private? (Can change anytime)`
+      return `Private environments need an API to read content. Should "${answers.newEnv.name}" be Private? (Can change anytime)`
     },
     when(answers: iq.Answers): boolean {
-      return when ? when(answers) : Boolean(answers.newEnv)
+      return config.when ? config.when(answers) : Boolean(answers.newEnv)
     },
   }
 }
@@ -82,14 +84,14 @@ const selectEnv = (): iq.ListQuestion => {
 const createEnvForOldProject = (answers: iq.Answers): boolean => answers.env && answers.env.id === 0
 const envPrivateForOldProject = (answers: iq.Answers): boolean => answers.env && answers.env.id === 0
 
-export const initPrompts = (projects: Project[]): iq.QuestionCollection => {
+export const initPrompts = (projects: Project[], hooks: PromptHooks): iq.QuestionCollection => {
   return [
-    project(projects),
-    newProject(),
+    project({ projects }),
+    newProject({ hooks }),
     newEnv(),
-    envPrivate(),
+    envPrivate({ hooks }),
     selectEnv(),
-    newEnv(createEnvForOldProject),
-    envPrivate(envPrivateForOldProject),
+    newEnv({ when: createEnvForOldProject }),
+    envPrivate({ when: envPrivateForOldProject, hooks }),
   ]
 }

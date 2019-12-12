@@ -1,4 +1,4 @@
-import { Project } from '../types'
+import { Project, Env, NewEnv } from '../types'
 
 const wait = (time: number, payload: any): Promise<any> =>
   new Promise(resolve => {
@@ -14,4 +14,23 @@ export const getProjects = (): Promise<Project[]> => {
     { name: 'Team dashboard', id: 'v7ydjf89ko' },
   ]
   return wait(2500, projects)
+}
+
+export const createProject = (name: string): Promise<Project> => {
+  const project = {
+    name,
+    id: '3984hdsa9843',
+    envs: [],
+  }
+
+  return wait(2500, project)
+}
+
+export const createEnv = (newEnv: NewEnv): Promise<Env> => {
+  const env = {
+    id: '3948495fds',
+    ...newEnv,
+  }
+
+  return wait(2500, env)
 }
