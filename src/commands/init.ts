@@ -3,8 +3,25 @@ import ora from 'ora'
 import { CommandConfig } from '../types'
 import config from '../utils/config'
 import prints from '../utils/prints'
-import { getProjects } from '../utils/api'
+import { getProjects, createProject, createEnv } from '../utils/api'
 import { initPrompts } from '../utils/prompts'
+
+const hooks = {
+  async createProject(name: any): Promise<any> {
+    const spinner = ora(prints.creatingProject).start()
+    const project = await createProject(name)
+
+    spinner.succeed(prints.createdProject)
+    return project
+  },
+  async createEnv(name: any): Promise<any> {
+    const spinner = ora(prints.creatingEnv).start()
+    const project = await createEnv(name)
+
+    spinner.succeed(prints.creatingEnv)
+    return project
+  },
+}
 
 export const init: CommandConfig = {
   command: 'init',
@@ -30,7 +47,7 @@ export const init: CommandConfig = {
 
     spinner.succeed(prints.projectsLoaded)
 
-    const answers = await iq.prompt(initPrompts(projects))
+    const answers = await iq.prompt(initPrompts(projects, hooks))
     logger.info(answers)
   },
 }

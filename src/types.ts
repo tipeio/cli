@@ -30,3 +30,23 @@ export interface Project {
   name: string
   envs?: Env[]
 }
+
+export interface NewEnv {
+  private: boolean
+  name: string
+  project: string
+}
+
+export interface PromptHook {
+  (input: any): any
+}
+
+export interface PromptHooks {
+  [hook: string]: PromptHook
+}
+
+export interface PromptConfig {
+  projects?: Project[]
+  when?: Function
+  hooks?: PromptHooks
+}
