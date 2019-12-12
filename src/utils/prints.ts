@@ -13,10 +13,20 @@ const foundAuth = `${ls.success} You're already authenticated.`
 const gettingProjects = '...Fetching your projects'
 const projectsLoaded = 'Projects loaded'
 
+const creatingProject = '... Creating Project'
+const creatingEnv = '... Creating Project'
+
+const createdProject = 'Project created'
+const envCreated = 'Environment created'
+
 export default {
   header,
   intro,
   foundAuth,
   gettingProjects,
   projectsLoaded,
+  creatingProject,
+  creatingEnv,
+  createdProject,
+  envCreated,
 }
