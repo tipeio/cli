@@ -50,3 +50,22 @@ export interface PromptConfig {
   when?: Function
   hooks?: PromptHooks
 }
+
+export interface ProjectConfig {
+  project: Project
+  env: Env
+  dashboard: Dashboard
+}
+
+export interface Frameworks {
+  gatsby: 'gatsby'
+  react: 'react'
+  angular: 'angular'
+  gridsome: 'gridsome'
+  vue: 'vue'
+  nuxt: 'nuxt'
+  next: 'next'
+}
+
+export type Framework = 'gatsby' | 'react' | 'angular' | 'gridsome' | 'vue' | 'nuxt' | 'next'
+export type Dashboard = 'gatsby-theme' | 'standalone' | 'nuxt' | 'next' | 'vue' | 'react' | 'gridsome'

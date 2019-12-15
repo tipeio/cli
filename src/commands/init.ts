@@ -1,24 +1,28 @@
-import iq from 'inquirer'
 import ora from 'ora'
-import { CommandConfig } from '../types'
+import open from 'open'
+import { ChildProcess } from 'child_process'
+import { CommandConfig, Dashboard } from '../types'
 import config from '../utils/config'
 import prints from '../utils/prints'
-import { getProjects, createProject, createEnv } from '../utils/api'
+import { yarnInstall, installDashboard } from '../utils/install'
 import { initPrompts } from '../utils/prompts'
+import { getProjects, createProject, createEnv, getAuthToken, authenticate } from '../utils/api'
+
+const openAuthWindow = (token: string): Promise<ChildProcess> => open(`https://tipe.io?cliuuid=${token}`)
 
 const hooks = {
-  async createProject(name: any): Promise<any> {
+  async createProject(options: any): Promise<any> {
     const spinner = ora(prints.creatingProject).start()
-    const project = await createProject(name)
+    const project = await createProject(options.name)
 
     spinner.succeed(prints.createdProject)
     return project
   },
-  async createEnv(name: any): Promise<any> {
+  async createEnv(options: any): Promise<any> {
     const spinner = ora(prints.creatingEnv).start()
-    const project = await createEnv(name)
+    const project = await createEnv(options)
 
-    spinner.succeed(prints.creatingEnv)
+    spinner.succeed(prints.createdEnv)
     return project
   },
 }
@@ -31,23 +35,38 @@ export const init: CommandConfig = {
     logger.info(prints.header)
     logger.info(prints.intro)
 
-    // TODO: remove when browser auth is ready
-    config.setAuth('420983fsd934nfasd9aks8347n')
-
+    // TODO: remove when auth api is up
+    config.removeAuth()
     const userKey = config.getAuth()
+
     if (!userKey) {
-      // TODO: implement browser auth
-      return
+      const spinner = ora(prints.openingAuth).start()
+      await openAuthWindow(await getAuthToken())
+
+      spinner.text = prints.waitingForAuth
+      const userKey = await authenticate()
+
+      config.setAuth(userKey)
+      spinner.succeed('Account found. Saving for next time 💯.')
+    } else {
+      logger.info(prints.foundAuth)
     }
 
-    logger.info(prints.foundAuth)
-
-    const spinner = ora(prints.gettingProjects).start()
+    let spinner = ora(prints.gettingProjects).start()
     const projects = await getProjects()
 
     spinner.succeed(prints.projectsLoaded)
 
-    const answers = await iq.prompt(initPrompts(projects, hooks))
-    logger.info(answers)
+    const answers = await initPrompts(projects, hooks)
+
+    spinner = ora(prints.installing).start()
+
+    try {
+      await installDashboard(answers.dashboard)
+      spinner.succeed('Tipe dashboard installed 😎')
+      console.log(prints.gatsbyDone)
+    } catch (e) {
+      spinner.fail(prints.installError)
+    }
   },
 }

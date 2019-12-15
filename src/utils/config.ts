@@ -9,4 +9,7 @@ export default {
   setAuth(token: string): void {
     config.set('tipe.auth', token)
   },
+  removeAuth(): void {
+    config.delete('tipe.auth')
+  },
 }
