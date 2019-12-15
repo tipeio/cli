@@ -1,97 +1,105 @@
-import iq from 'inquirer'
-import { Project, Env, PromptHooks, PromptConfig } from '../types'
+import prompts from 'prompts'
+import { Project, Env, PromptHooks, ProjectConfig, Dashboard } from '../types'
+import { isGatsby } from '../utils/detect'
 
-const project = (config: PromptConfig): iq.ListQuestion => {
-  const projectChoices = [
-    { name: 'Create new project', value: { id: 0 } },
-    new iq.Separator(),
-    ...config.projects!.map(p => ({
-      name: p.name,
-      value: p,
-    })),
-  ]
+export const initPrompts = async (projects: Project[], hooks: PromptHooks): Promise<ProjectConfig> => {
+  const { selectedProject } = await prompts({
+    type: 'select',
+    name: 'selectedProject',
+    message: 'Select or create a Project',
+    choices: [
+      { title: 'CREATE NEW PROJECT', value: { id: 0 } },
+      ...projects.map((p: Project) => ({
+        title: `${p.id}   ${p.name}`,
+        value: p,
+      })),
+    ],
+  })
 
-  return {
-    type: 'list',
-    name: 'project',
-    message: 'Select or create your Tipe project',
-    default: 'New Tipe project',
-    choices: projectChoices,
+  let env, project
+
+  if (selectedProject.id === 0) {
+    const { projectName } = await prompts({
+      type: 'text',
+      name: 'projectName',
+      message: 'Give your project a name.',
+      initial: 'My Tipe Project',
+    })
+
+    project = await hooks.createProject({ name: projectName })
+
+    const { envName } = await prompts({
+      type: 'text',
+      name: 'envName',
+      message: 'Give your environment a name.',
+      initial: 'production',
+    })
+
+    const { envPrivate } = await prompts({
+      type: 'toggle',
+      name: 'envPrivate',
+      message: `Make "${envName}" private? (Will need an API to read, can change whenver)`,
+      initial: false,
+      active: 'yes',
+      inactive: 'no',
+    })
+
+    env = await hooks.createEnv({ name: envName, project: project.id, private: envPrivate })
+  } else {
+    project = selectedProject
+
+    const { selectedEnv } = await prompts({
+      type: 'select',
+      name: 'selectedEnv',
+      message: 'Select or create an Environment',
+      choices: [
+        { title: 'CREATE NEW ENVIRONMENT', value: { id: 0 } },
+        ...project.envs.map((e: Env) => ({
+          title: `${e.id}   ${e.name}`,
+          value: e,
+        })),
+      ],
+    })
+
+    if (selectedEnv.id === 0) {
+      const { envName } = await prompts({
+        type: 'text',
+        name: 'envName',
+        message: 'Give your environment a name.',
+        initial: 'production',
+      })
+
+      const { envPrivate } = await prompts({
+        type: 'toggle',
+        name: 'envPrivate',
+        message: `Make "${envName}" private? (Will need an API to read, can change whenver)`,
+        initial: false,
+        inactive: 'no',
+        active: 'yes',
+      })
+
+      env = await hooks.createEnv({ name: envName, project: project.id, private: envPrivate })
+    } else {
+      env = selectedEnv
+    }
   }
-}
 
-const newProject = (config: PromptConfig): iq.InputQuestion => ({
-  name: 'newProject',
-  message: 'Name your project',
-  default: 'My Tipe project',
-  when(answers: iq.Answers): boolean {
-    const { project } = answers
-    return project.id === 0
-  },
-  filter: config.hooks!.createProject,
-})
+  let dashboard: Dashboard
+  if (isGatsby()) {
+    const { dash } = await prompts({
+      type: 'select',
+      name: 'dash',
+      message: 'Gatsby project detected. Install the Tipe dashboard as a Gatsby theme?',
+      choices: [
+        { title: 'Yes (Recommended)', value: 'gatsby-theme' },
+        { title: 'No - install as a standalone app', value: 'standalone' },
+      ],
+    })
 
-const newEnv = (config: PromptConfig = {}): iq.InputQuestion => ({
-  name: 'newEnv',
-  message: 'Name your environment',
-  default: 'production',
-  when(answers: iq.Answers): boolean {
-    return config.when ? config.when(answers) : Boolean(answers.newProject)
-  },
-  filter: config.hooks!.createEnv,
-})
-
-const envPrivate = (config: PromptConfig = {}): iq.ConfirmQuestion => {
-  return {
-    name: 'envPrivate',
-    type: 'confirm',
-    message(answers: iq.Answers): string {
-      return `Private environments need an API to read content. Should "${answers.newEnv.name}" be Private? (Can change anytime)`
-    },
-    when(answers: iq.Answers): boolean {
-      return config.when ? config.when(answers) : Boolean(answers.newEnv)
-    },
+    dashboard = dash
+  } else {
+    dashboard = 'standalone'
   }
-}
 
-const selectEnv = (): iq.ListQuestion => {
-  return {
-    type: 'list',
-    name: 'env',
-    message: 'Select an environment',
-    when(answers: iq.Answers): boolean {
-      const { project } = answers
-      return project.id !== 0
-    },
-    choices(answers: iq.Answers): iq.ChoiceCollection {
-      const { envs } = answers.project
-      let envChoices = [{ name: 'Create New Environment', value: { id: 0 } }, new iq.Separator()]
-
-      if (envs.length) {
-        envChoices = envChoices.concat(
-          envs.map((e: Env) => ({
-            name: e.name,
-            value: e,
-          })),
-        )
-      }
-
-      return envChoices
-    },
-  }
-}
-
-const createEnvForOldProject = (answers: iq.Answers): boolean => answers.env && answers.env.id === 0
-const envPrivateForOldProject = (answers: iq.Answers): boolean => answers.env && answers.env.id === 0
-
-export const initPrompts = (projects: Project[], hooks: PromptHooks): iq.QuestionCollection => {
-  return [
-    project({ projects }),
-    newProject({ hooks }),
-    newEnv(),
-    envPrivate({ hooks }),
-    selectEnv(),
-    newEnv({ when: createEnvForOldProject }),
-    envPrivate({ when: envPrivateForOldProject, hooks }),
-  ]
+  return { project, env, dashboard }
 }

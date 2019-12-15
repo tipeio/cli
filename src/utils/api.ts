@@ -34,3 +34,7 @@ export const createEnv = (newEnv: NewEnv): Promise<Env> => {
 
   return wait(2500, env)
 }
+
+export const getAuthToken = (): Promise<string> => wait(1200, '945jfas0934jasd09fkdasna94n')
+
+export const authenticate = (): Promise<string> => wait(5000, '3948fs934nfa90i4jna9kf8')
