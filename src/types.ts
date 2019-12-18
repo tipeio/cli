@@ -1,3 +1,11 @@
+export interface APIConfig {
+  dev: boolean
+  path: string
+  payload?: any
+  auth?: string
+  project?: string
+}
+
 export interface CommandArgument {
   arg: string
   description: string
@@ -8,6 +16,7 @@ export interface CommandArgument {
 export interface CommandOption {
   option: string
   description: string
+  type?: any
   default?: any
 }
 

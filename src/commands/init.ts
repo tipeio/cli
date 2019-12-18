@@ -1,10 +1,11 @@
 import ora from 'ora'
 import open from 'open'
+import prog from 'caporal'
 import { ChildProcess } from 'child_process'
-import { CommandConfig, Dashboard } from '../types'
+import { CommandConfig } from '../types'
 import config from '../utils/config'
 import prints from '../utils/prints'
-import { yarnInstall, installDashboard } from '../utils/install'
+import { installDashboard } from '../utils/install'
 import { initPrompts } from '../utils/prompts'
 import { getProjects, createProject, createEnv, getAuthToken, authenticate } from '../utils/api'
 
@@ -30,8 +31,11 @@ const hooks = {
 export const init: CommandConfig = {
   command: 'init',
   description: 'Create a new Tipe project',
-  options: [{ option: '--skip', description: 'skip things' }],
-  async action(__, _, logger) {
+  options: [
+    { option: '--skip', description: 'skip things' },
+    { option: '--dev', description: 'run command in dev mode', type: prog.BOOLEAN },
+  ],
+  async action(__, options, logger) {
     logger.info(prints.header)
     logger.info(prints.intro)
 
@@ -41,10 +45,10 @@ export const init: CommandConfig = {
 
     if (!userKey) {
       const spinner = ora(prints.openingAuth).start()
-      await openAuthWindow(await getAuthToken())
+      await openAuthWindow(await getAuthToken(options))
 
       spinner.text = prints.waitingForAuth
-      const userKey = await authenticate()
+      const userKey = await authenticate(options)
 
       config.setAuth(userKey)
       spinner.succeed('Account found. Saving for next time 💯.')
