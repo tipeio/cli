@@ -12,8 +12,10 @@ Lets's get started 🚀
 `
 
 const foundAuth = `${ls.success} Account found.`
+const authError = `Oh no :(. We are having trouble right now.`
 const gettingProjects = '...Fetching your projects'
 const projectsLoaded = 'Projects loaded'
+const authenticated = ' Authentication sucess 💯. Saving for next time'
 
 const creatingProject = '... Creating Project'
 const creatingEnv = '... Creating Environment'
@@ -67,4 +69,6 @@ export default {
   createdProject,
   createdEnv,
   notAuthenticated,
+  authError,
+  authenticated,
 }

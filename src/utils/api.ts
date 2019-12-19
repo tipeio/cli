@@ -1,4 +1,5 @@
-import { Project, Env, NewEnv, APIConfig } from '../types'
+import { Project, Env, NewEnv, Authenticate, APIConfig, AuthResult, GetAuthToken } from '../types'
+import Poll from 'poll-until-promise'
 import got from 'got'
 
 const DEV_URL = 'http://localhost:8000'
@@ -9,6 +10,10 @@ const getURL = (dev: boolean): string => (dev ? DEV_URL : PROD_URL)
 async function api<T>(options: APIConfig): Promise<T> {
   try {
     const config: any = { prefixUrl: getURL(options.dev) }
+
+    if (options.timeout) {
+      config.timeout = options.timeout
+    }
 
     if (options.auth) {
       config.headers = { authorization: `Bearer ${options.auth}` }
@@ -68,9 +73,29 @@ export const createEnv = (newEnv: NewEnv): Promise<Env> => {
   return wait(2500, env)
 }
 
-export const getAuthToken = async (options: any): Promise<string> => {
+export const getAuthToken: GetAuthToken = async options => {
   const result: { token: string } = await api<{ token: string }>({ path: 'cli-token', dev: options.dev })
   return result.token
 }
 
-export const authenticate = (options: any): Promise<string> => wait(5000, '3948fs934nfa90i4jna9kf8')
+export const authenticate: Authenticate = async options => {
+  const pollTimeout = 50 * 60 * 100 // poll for at most 5 mins
+  const httpTimeout = 3000
+
+  const poll = new Poll({ stopOnFailure: true, interval: 1000, timeout: pollTimeout })
+
+  return poll.execute(async () => {
+    const result: AuthResult = await api<AuthResult>({
+      path: 'swap',
+      dev: options.dev,
+      payload: { token: options.token },
+      timeout: httpTimeout, // http timeout
+    })
+
+    if (result.key && result.user) {
+      return result
+    } else {
+      return false
+    }
+  })
+}

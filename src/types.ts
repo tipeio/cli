@@ -1,6 +1,14 @@
+export type AsyncResult = Error[] | [null, any]
+
+export interface AuthResult {
+  key: string
+  user: any
+}
+
 export interface APIConfig {
   dev: boolean
   path: string
+  timeout?: number
   payload?: any
   auth?: string
   project?: string
@@ -74,6 +82,14 @@ export interface Frameworks {
   vue: 'vue'
   nuxt: 'nuxt'
   next: 'next'
+}
+
+export interface GetAuthToken {
+  (options: { dev: boolean }): Promise<string>
+}
+
+export interface Authenticate {
+  (options: { dev: boolean; token: string }): Promise<AuthResult>
 }
 
 export type Framework = 'gatsby' | 'react' | 'angular' | 'gridsome' | 'vue' | 'nuxt' | 'next'

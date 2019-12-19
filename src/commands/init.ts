@@ -3,6 +3,7 @@ import open from 'open'
 import prog from 'caporal'
 import { ChildProcess } from 'child_process'
 import { CommandConfig } from '../types'
+import { resolve } from '../utils/resolve'
 import config from '../utils/config'
 import prints from '../utils/prints'
 import { installDashboard } from '../utils/install'
@@ -45,13 +46,23 @@ export const init: CommandConfig = {
 
     if (!userKey) {
       const spinner = ora(prints.openingAuth).start()
-      await openAuthWindow(await getAuthToken(options))
+      const [error, token] = await resolve(getAuthToken({ dev: options.dev }))
+
+      if (error) {
+        return spinner.fail(prints.authError)
+      }
+
+      await openAuthWindow(token)
 
       spinner.text = prints.waitingForAuth
-      const userKey = await authenticate(options)
+      const [userError, user] = await resolve(authenticate({ dev: options.dev, token }))
 
-      config.setAuth(userKey)
-      spinner.succeed('Account found. Saving for next time 💯.')
+      if (userError) {
+        return spinner.fail(prints.authError)
+      }
+
+      config.setAuth(user.key)
+      spinner.succeed(prints.authenticated)
     } else {
       logger.info(prints.foundAuth)
     }
