@@ -11,3 +11,8 @@ declare module 'download-git-repo' {
   const download: Download
   export default download
 }
+
+declare module 'poll-until-promise' {
+  const PollUntil: any
+  export default PollUntil
+}

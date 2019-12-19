@@ -4640,6 +4640,11 @@ plur@^3.1.1:
   dependencies:
     irregular-plurals "^2.0.0"
 
+poll-until-promise@^1.3.2:
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/poll-until-promise/-/poll-until-promise-1.3.2.tgz#71cc2f4b2e057559844cb9c11b07ee87fef5ef6b"
+  integrity sha512-pB8N1++vDQs0IcMc8Tlm/mflVJmtIa2Eom48TspNIqw7Fs6uwA1tu7Q1EttHuzEcvT9iBa5jumuNWFxFjeJLmA==
+
 posix-character-classes@^0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/posix-character-classes/-/posix-character-classes-0.1.1.tgz#01eac0fe3b5af71a2a6c02feabb8c1fef7e00eab"
