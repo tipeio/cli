@@ -15,8 +15,12 @@ const foundAuth = `${ls.success} Account found.`
 const authError = `Oh no :(. We are having trouble right now.`
 const gettingProjects = '...Fetching your projects'
 const projectsLoaded = 'Projects loaded'
-const authenticated = ' Authentication sucess 💯. Saving for next time'
+const authenticated = (_: TemplateStringsArray, email: any): string =>
+  `Authentication for ${email} sucess 💯. Saving for next time`
 
+const creatingFirstProject = '... Creating your first Project and Environment'
+const createdFirstProject = (_: TemplateStringsArray, project: string, environment: string): string =>
+  `Created Project "${project}" and Environment "${environment}"`
 const creatingProject = '... Creating Project'
 const creatingEnv = '... Creating Environment'
 
@@ -24,9 +28,9 @@ const createdProject = 'Project created'
 const createdEnv = 'Environment created'
 
 const notAuthenticated = `Account not found`
-const openingAuth = `Opening browser so you can signin or signup`
-const waitingForAuth = '...Waiting for authentication'
-const installing = '...Installing the Tipe dashboard, hold tight'
+const openingAuth = `Opening browser so you can signin or signup 😘`
+const waitingForAuth = '...Waiting for you to finish authenticating 😴'
+const installing = '...Installing the Tipe dashboard, hold tight 👀'
 const installError = `${chalk.redBright.bold('Could not install the Tipe dashboard')}.
 
 This might be an issue with your npm or yarn installation.
@@ -35,6 +39,8 @@ You can still install the Tipe dashboard:
 ${chalk.bold('* gatsby theme: "npm install -S gatsby-theme-tipe"')}
 ${chalk.bold('* standalone:   "git clone https://github.com/tipeio/dashboard-standalone"')}
 `
+
+const installed = (_: TemplateStringsArray, dashboard: any): string => `Tipe dashboard (${dashboard}) installed 😎`
 
 const gatsbyDone = boxen(
   `${chalk.bold("You're all set")} 🎉!
@@ -71,4 +77,7 @@ export default {
   notAuthenticated,
   authError,
   authenticated,
+  installed,
+  creatingFirstProject,
+  createdFirstProject,
 }

@@ -1,23 +1,19 @@
 import ora from 'ora'
-import open from 'open'
 import prog from 'caporal'
-import { ChildProcess } from 'child_process'
 import { CommandConfig } from '../types'
 import { resolve } from '../utils/resolve'
 import config from '../utils/config'
 import prints from '../utils/prints'
 import { installDashboard } from '../utils/install'
 import { initPrompts } from '../utils/prompts'
-import { getProjects, createProject, createEnv, getAuthToken, authenticate } from '../utils/api'
-
-const openAuthWindow = (token: string): Promise<ChildProcess> => open(`https://tipe.io?cliuuid=${token}`)
+import { getProjects, createProject, createEnv, getAuthToken, authenticate, openAuthWindow } from '../utils/api'
 
 const hooks = {
   async createProject(options: any): Promise<any> {
-    const spinner = ora(prints.creatingProject).start()
+    const spinner = ora(prints.creatingFirstProject).start()
     const project = await createProject(options.name)
 
-    spinner.succeed(prints.createdProject)
+    spinner.succeed(prints.createdFirstProject`${project.name} ${project.envs[0].name}`)
     return project
   },
   async createEnv(options: any): Promise<any> {
@@ -52,7 +48,7 @@ export const init: CommandConfig = {
         return spinner.fail(prints.authError)
       }
 
-      await openAuthWindow(token)
+      await openAuthWindow({ token, dev: options.dev })
 
       spinner.text = prints.waitingForAuth
       const [userError, user] = await resolve(authenticate({ dev: options.dev, token }))
@@ -62,7 +58,7 @@ export const init: CommandConfig = {
       }
 
       config.setAuth(user.key)
-      spinner.succeed(prints.authenticated)
+      spinner.succeed(prints.authenticated`${user.user.email}`)
     } else {
       logger.info(prints.foundAuth)
     }
@@ -78,8 +74,7 @@ export const init: CommandConfig = {
 
     try {
       await installDashboard(answers.dashboard)
-      spinner.succeed('Tipe dashboard installed 😎')
-      console.log(prints.gatsbyDone)
+      spinner.succeed(prints.installed`${answers.dashboard}`)
     } catch (e) {
       spinner.fail(prints.installError)
     }
