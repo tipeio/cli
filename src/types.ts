@@ -45,7 +45,7 @@ export interface Env {
 export interface Project {
   id: string
   name: string
-  envs?: Env[]
+  envs: Env[]
 }
 
 export interface NewEnv {

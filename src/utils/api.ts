@@ -1,6 +1,8 @@
 import { Project, Env, NewEnv, Authenticate, APIConfig, AuthResult, GetAuthToken } from '../types'
 import Poll from 'poll-until-promise'
 import got from 'got'
+import open from 'open'
+import { ChildProcess } from 'child_process'
 
 const DEV_URL = 'http://localhost:8000'
 const PROD_URL = 'https://api.tipe.io'
@@ -45,11 +47,14 @@ const wait = (time: number, payload: any): Promise<any> =>
     }, time)
   })
 
+export const openAuthWindow = (config: { dev: boolean; token: string }): Promise<ChildProcess> =>
+  open(`${getURL(config.dev)}/cli-signup?cliuuid=${config.token}`)
+
 export const getProjects = (): Promise<Project[]> => {
   const projects: Project[] = [
     { name: 'Docs Site', id: 'asdkjf83u4', envs: [{ id: '9348reiur', name: 'Production', private: true }] },
-    { name: 'Home Site', id: '9834ds9jas' },
-    { name: 'Team dashboard', id: 'v7ydjf89ko' },
+    { name: 'Home Site', id: '9834ds9jas', envs: [] },
+    { name: 'Team dashboard', id: 'v7ydjf89ko', envs: [] },
   ]
   return wait(2500, projects)
 }
@@ -58,7 +63,14 @@ export const createProject = (name: string): Promise<Project> => {
   const project = {
     name,
     id: '3984hdsa9843',
-    envs: [],
+    envs: [
+      {
+        id: '3948495fds',
+        private: false,
+        name: 'Production',
+        project: '3984hdsa9843',
+      },
+    ],
   }
 
   return wait(2500, project)
@@ -74,8 +86,11 @@ export const createEnv = (newEnv: NewEnv): Promise<Env> => {
 }
 
 export const getAuthToken: GetAuthToken = async options => {
-  const result: { token: string } = await api<{ token: string }>({ path: 'cli-token', dev: options.dev })
-  return result.token
+  const result: { token: { value: string } } = await api<{ token: { value: string } }>({
+    path: 'cli-token',
+    dev: options.dev,
+  })
+  return result.token.value
 }
 
 export const authenticate: Authenticate = async options => {
@@ -92,7 +107,7 @@ export const authenticate: Authenticate = async options => {
       timeout: httpTimeout, // http timeout
     })
 
-    if (result.key && result.user) {
+    if (result && result.key && result.user) {
       return result
     } else {
       return false
