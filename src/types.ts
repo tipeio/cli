@@ -10,7 +10,7 @@ export interface APIConfig {
   path: string
   timeout?: number
   payload?: any
-  auth?: string
+  apiKey?: string
   project?: string
 }
 
@@ -54,12 +54,17 @@ export interface NewEnv {
   project: string
 }
 
-export interface PromptHook {
-  (input: any): any
+export interface OnCreateProject {
+  (options: { name: string }): Promise<Project>
+}
+
+export interface OnCreateEnv {
+  (options: NewEnv): Promise<Env>
 }
 
 export interface PromptHooks {
-  [hook: string]: PromptHook
+  onCreateProject: OnCreateProject
+  onCreateEnv: OnCreateEnv
 }
 
 export interface PromptConfig {
@@ -90,6 +95,10 @@ export interface GetAuthToken {
 
 export interface Authenticate {
   (options: { dev: boolean; token: string }): Promise<AuthResult>
+}
+
+export interface CreateFirstProject {
+  (options: { dev: boolean; name: string; key: string }): Promise<Project>
 }
 
 export type Framework = 'gatsby' | 'react' | 'angular' | 'gridsome' | 'vue' | 'nuxt' | 'next'
