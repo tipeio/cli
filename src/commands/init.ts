@@ -1,29 +1,30 @@
 import ora from 'ora'
 import prog from 'caporal'
-import { CommandConfig } from '../types'
+import { CommandConfig, PromptHooks, Env, Project } from '../types'
 import { resolve } from '../utils/resolve'
 import config from '../utils/config'
 import prints from '../utils/prints'
 import { installDashboard } from '../utils/install'
 import { initPrompts } from '../utils/prompts'
-import { getProjects, createProject, createEnv, getAuthToken, authenticate, openAuthWindow } from '../utils/api'
+import { getProjects, getAuthToken, authenticate, openAuthWindow, createFirstProject, createEnv } from '../utils/api'
 
-const hooks = {
-  async createProject(options: any): Promise<any> {
+const promptHooks = (cliOptions: any): PromptHooks => ({
+  async onCreateProject(options): Promise<Project> {
+    const apiKey = config.getAuth()
     const spinner = ora(prints.creatingFirstProject).start()
-    const project = await createProject(options.name)
+    const project = await createFirstProject({ key: apiKey, name: options.name, dev: cliOptions.dev })
 
     spinner.succeed(prints.createdFirstProject`${project.name} ${project.envs[0].name}`)
     return project
   },
-  async createEnv(options: any): Promise<any> {
+  async onCreateEnv(options): Promise<Env> {
     const spinner = ora(prints.creatingEnv).start()
     const project = await createEnv(options)
 
     spinner.succeed(prints.createdEnv)
     return project
   },
-}
+})
 
 export const init: CommandConfig = {
   command: 'init',
@@ -68,7 +69,7 @@ export const init: CommandConfig = {
 
     spinner.succeed(prints.projectsLoaded)
 
-    const answers = await initPrompts(projects, hooks)
+    const answers = await initPrompts(projects, promptHooks(options))
 
     spinner = ora(prints.installing).start()
 

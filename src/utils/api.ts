@@ -1,4 +1,4 @@
-import { Project, Env, NewEnv, Authenticate, APIConfig, AuthResult, GetAuthToken } from '../types'
+import { Project, Env, NewEnv, Authenticate, APIConfig, AuthResult, GetAuthToken, CreateFirstProject } from '../types'
 import Poll from 'poll-until-promise'
 import got from 'got'
 import open from 'open'
@@ -17,8 +17,8 @@ async function api<T>(options: APIConfig): Promise<T> {
       config.timeout = options.timeout
     }
 
-    if (options.auth) {
-      config.headers = { authorization: `Bearer ${options.auth}` }
+    if (options.apiKey) {
+      config.headers = { authorization: options.apiKey }
     }
 
     if (options.payload) {
@@ -57,6 +57,17 @@ export const getProjects = (): Promise<Project[]> => {
     { name: 'Team dashboard', id: 'v7ydjf89ko', envs: [] },
   ]
   return wait(2500, projects)
+}
+
+export const createFirstProject: CreateFirstProject = async options => {
+  const result: { project: Project } = await api<{ project: Project }>({
+    path: 'cli-init',
+    dev: options.dev,
+    payload: { name: options.name },
+    apiKey: options.key,
+  })
+
+  return result.project
 }
 
 export const createProject = (name: string): Promise<Project> => {

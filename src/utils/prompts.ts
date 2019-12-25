@@ -26,7 +26,7 @@ export const initPrompts = async (projects: Project[], hooks: PromptHooks): Prom
       initial: 'My Tipe Project',
     })
 
-    project = await hooks.createProject({ name: projectName })
+    project = await hooks.onCreateProject({ name: projectName })
     env = project.envs[0]
     // const { envName } = await prompts({
     //   type: 'text',
@@ -78,7 +78,7 @@ export const initPrompts = async (projects: Project[], hooks: PromptHooks): Prom
         active: 'yes',
       })
 
-      env = await hooks.createEnv({ name: envName, project: project.id, private: envPrivate })
+      env = await hooks.onCreateEnv({ name: envName, project: project.id, private: envPrivate })
     } else {
       env = selectedEnv
     }
