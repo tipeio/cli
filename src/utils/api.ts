@@ -1,43 +1,57 @@
-import { Project, Env, NewEnv, Authenticate, APIConfig, AuthResult, GetAuthToken, CreateFirstProject } from '../types'
 import Poll from 'poll-until-promise'
-import got from 'got'
+import got, { HTTPError } from 'got'
 import open from 'open'
 import { ChildProcess } from 'child_process'
+import { asyncWrap } from './async'
+import {
+  Project,
+  Env,
+  NewEnv,
+  Authenticate,
+  APIConfig,
+  AuthResult,
+  GetAuthToken,
+  CreateFirstProject,
+  GetProjects,
+  CheckAPIKey,
+  APIError,
+} from '../types'
 
 const DEV_URL = 'http://localhost:8000'
 const PROD_URL = 'https://api.tipe.io'
+const isUnauthorized = (error: APIError): boolean =>
+  error.name === 'HTTPError' && (error as HTTPError).response.statusCode === 401
+
+const isServerError = (error: APIError): boolean =>
+  error.name === 'HTTPError' && (error as HTTPError).response.statusCode !== 401
 
 const getURL = (dev: boolean): string => (dev ? DEV_URL : PROD_URL)
 
 async function api<T>(options: APIConfig): Promise<T> {
-  try {
-    const config: any = { prefixUrl: getURL(options.dev) }
+  const config: any = { prefixUrl: getURL(options.dev) }
 
-    if (options.timeout) {
-      config.timeout = options.timeout
-    }
-
-    if (options.apiKey) {
-      config.headers = { authorization: options.apiKey }
-    }
-
-    if (options.payload) {
-      config.json = options.payload
-    }
-
-    if (options.project) {
-      if (config.json) {
-        config.json = { ...config.json, project: options.project }
-      } else {
-        config.json = { project: options.project }
-      }
-    }
-
-    const result: any = await got.post(options.path, config).json()
-    return result.data
-  } catch (e) {
-    throw e
+  if (options.timeout) {
+    config.timeout = options.timeout
   }
+
+  if (options.apiKey) {
+    config.headers = { authorization: options.apiKey }
+  }
+
+  if (options.payload) {
+    config.json = options.payload
+  }
+
+  if (options.project) {
+    if (config.json) {
+      config.json = { ...config.json, project: options.project }
+    } else {
+      config.json = { project: options.project }
+    }
+  }
+
+  const result: any = await got.post(options.path, config).json()
+  return result.data
 }
 
 const wait = (time: number, payload: any): Promise<any> =>
@@ -50,13 +64,30 @@ const wait = (time: number, payload: any): Promise<any> =>
 export const openAuthWindow = (config: { dev: boolean; token: string }): Promise<ChildProcess> =>
   open(`${getURL(config.dev)}/cli-signup?cliuuid=${config.token}`)
 
-export const getProjects = (): Promise<Project[]> => {
-  const projects: Project[] = [
-    { name: 'Docs Site', id: 'asdkjf83u4', envs: [{ id: '9348reiur', name: 'Production', private: true }] },
-    { name: 'Home Site', id: '9834ds9jas', envs: [] },
-    { name: 'Team dashboard', id: 'v7ydjf89ko', envs: [] },
-  ]
-  return wait(2500, projects)
+export const checkAPIKey: CheckAPIKey = async options => {
+  const [error] = await asyncWrap<any, APIError>(
+    api<any>({
+      path: 'key-check',
+      dev: options.dev,
+      apiKey: options.apiKey,
+    }),
+  )
+
+  if (error) {
+    if (isUnauthorized(error)) return false
+    throw error
+  }
+
+  return true
+}
+export const getProjects: GetProjects = async (options): Promise<Project[]> => {
+  const result: { projects: Project[] } = await api<{ projects: Project[] }>({
+    path: 'projects',
+    dev: options.dev,
+    apiKey: options.apiKey,
+  })
+
+  return result.projects
 }
 
 export const createFirstProject: CreateFirstProject = async options => {
@@ -64,7 +95,7 @@ export const createFirstProject: CreateFirstProject = async options => {
     path: 'cli-init',
     dev: options.dev,
     payload: { name: options.name },
-    apiKey: options.key,
+    apiKey: options.apiKey,
   })
 
   return result.project
