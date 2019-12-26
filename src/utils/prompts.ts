@@ -1,6 +1,7 @@
 import prompts from 'prompts'
 import { Project, Env, PromptHooks, ProjectConfig, Dashboard } from '../types'
 import { isGatsby } from '../utils/detect'
+import chalk from 'chalk'
 
 export const initPrompts = async (projects: Project[], hooks: PromptHooks): Promise<ProjectConfig> => {
   const { selectedProject } = await prompts({
@@ -10,7 +11,7 @@ export const initPrompts = async (projects: Project[], hooks: PromptHooks): Prom
     choices: [
       { title: 'CREATE NEW PROJECT', value: { id: 0 } },
       ...projects.map((p: Project) => ({
-        title: `${p.id}   ${p.name}`,
+        title: `${chalk.yellow(p.id)}   ${p.name}`,
         value: p,
       })),
     ],
@@ -27,35 +28,17 @@ export const initPrompts = async (projects: Project[], hooks: PromptHooks): Prom
     })
 
     project = await hooks.onCreateProject({ name: projectName })
-    env = project.envs[0]
-    // const { envName } = await prompts({
-    //   type: 'text',
-    //   name: 'envName',
-    //   message: 'Give your environment a name.',
-    //   initial: 'production',
-    // })
-
-    // const { envPrivate } = await prompts({
-    //   type: 'toggle',
-    //   name: 'envPrivate',
-    //   message: `Make "${envName}" private? (Will need an API to read, can change whenver)`,
-    //   initial: false,
-    //   active: 'yes',
-    //   inactive: 'no',
-    // })
-
-    // env = await hooks.createEnv({ name: envName, project: project.id, private: envPrivate })
+    env = project.environments[0]
   } else {
     project = selectedProject
-
     const { selectedEnv } = await prompts({
       type: 'select',
       name: 'selectedEnv',
       message: 'Select or create an Environment',
       choices: [
         { title: 'CREATE NEW ENVIRONMENT', value: { id: 0 } },
-        ...project.envs.map((e: Env) => ({
-          title: `${e.id}   ${e.name}`,
+        ...project.environments.map((e: Env) => ({
+          title: `${chalk.yellow(e.id)}   ${e.name} (${e.private ? chalk.red('Private') : chalk.green('Public')})`,
           value: e,
         })),
       ],
@@ -72,7 +55,7 @@ export const initPrompts = async (projects: Project[], hooks: PromptHooks): Prom
       const { envPrivate } = await prompts({
         type: 'toggle',
         name: 'envPrivate',
-        message: `Make "${envName}" private? (Will need an API to read, can change whenver)`,
+        message: `Make "${envName}" private? (Will need an API to read. You can change this whenever)`,
         initial: false,
         inactive: 'no',
         active: 'yes',

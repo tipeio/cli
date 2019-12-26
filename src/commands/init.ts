@@ -6,15 +6,23 @@ import config from '../utils/config'
 import prints from '../utils/prints'
 import { installDashboard } from '../utils/install'
 import { initPrompts } from '../utils/prompts'
-import { getProjects, getAuthToken, authenticate, openAuthWindow, createFirstProject, createEnv } from '../utils/api'
+import {
+  checkAPIKey,
+  getProjects,
+  getAuthToken,
+  authenticate,
+  openAuthWindow,
+  createFirstProject,
+  createEnv,
+} from '../utils/api'
 
 const promptHooks = (cliOptions: any): PromptHooks => ({
   async onCreateProject(options): Promise<Project> {
     const apiKey = config.getAuth()
     const spinner = ora(prints.creatingFirstProject).start()
-    const project = await createFirstProject({ key: apiKey, name: options.name, dev: cliOptions.dev })
+    const project = await createFirstProject({ apiKey, name: options.name, dev: cliOptions.dev })
 
-    spinner.succeed(prints.createdFirstProject`${project.name} ${project.envs[0].name}`)
+    spinner.succeed(prints.createdFirstProject`${project.name} ${project.environments[0].name}`)
     return project
   },
   async onCreateEnv(options): Promise<Env> {
@@ -37,11 +45,16 @@ export const init: CommandConfig = {
     logger.info(prints.header)
     logger.info(prints.intro)
 
-    // TODO: remove when auth api is up
-    config.removeAuth()
-    const userKey = config.getAuth()
+    let userKey = config.getAuth()
+    let validKey = false
 
-    if (!userKey) {
+    if (userKey) {
+      validKey = await checkAPIKey({ dev: options.dev, apiKey: userKey })
+    }
+
+    console.log(userKey, validKey)
+
+    if (!userKey || !validKey) {
       const spinner = ora(prints.openingAuth).start()
       const [error, token] = await resolve(getAuthToken({ dev: options.dev }))
 
@@ -59,13 +72,14 @@ export const init: CommandConfig = {
       }
 
       config.setAuth(user.key)
+      userKey = user.key
       spinner.succeed(prints.authenticated`${user.user.email}`)
     } else {
       logger.info(prints.foundAuth)
     }
 
     let spinner = ora(prints.gettingProjects).start()
-    const projects = await getProjects()
+    const projects = await getProjects({ dev: options.dev, apiKey: userKey })
 
     spinner.succeed(prints.projectsLoaded)
 

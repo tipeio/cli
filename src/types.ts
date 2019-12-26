@@ -1,3 +1,14 @@
+import {
+  CacheError,
+  RequestError,
+  ParseError,
+  HTTPError,
+  MaxRedirectsError,
+  UnsupportedProtocolError,
+  TimeoutError,
+  CancelError,
+} from 'got'
+
 export type AsyncResult = Error[] | [null, any]
 
 export interface AuthResult {
@@ -45,7 +56,7 @@ export interface Env {
 export interface Project {
   id: string
   name: string
-  envs: Env[]
+  environments: Env[]
 }
 
 export interface NewEnv {
@@ -98,8 +109,25 @@ export interface Authenticate {
 }
 
 export interface CreateFirstProject {
-  (options: { dev: boolean; name: string; key: string }): Promise<Project>
+  (options: { dev: boolean; name: string; apiKey: string }): Promise<Project>
+}
+
+export interface GetProjects {
+  (options: { dev: boolean; apiKey: string }): Promise<Project[]>
+}
+
+export interface CheckAPIKey {
+  (options: { dev: boolean; apiKey: string }): Promise<boolean>
 }
 
 export type Framework = 'gatsby' | 'react' | 'angular' | 'gridsome' | 'vue' | 'nuxt' | 'next'
 export type Dashboard = 'gatsby-theme' | 'standalone' | 'nuxt' | 'next' | 'vue' | 'react' | 'gridsome'
+export type APIError =
+  | CacheError
+  | RequestError
+  | ParseError
+  | HTTPError
+  | MaxRedirectsError
+  | UnsupportedProtocolError
+  | TimeoutError
+  | CancelError
