@@ -27,10 +27,12 @@ const promptHooks = (cliOptions: any): PromptHooks => ({
   },
   async onCreateEnv(options): Promise<Env> {
     const spinner = ora(prints.creatingEnv).start()
-    const project = await createEnv(options)
+    const apiKey = config.getAuth()
+
+    const environment = await createEnv({ apiKey, dev: cliOptions.dev, environment: options })
 
     spinner.succeed(prints.createdEnv)
-    return project
+    return environment
   },
 })
 
