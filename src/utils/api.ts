@@ -6,7 +6,7 @@ import { asyncWrap } from './async'
 import {
   Project,
   Env,
-  NewEnv,
+  CreateEnv,
   Authenticate,
   APIConfig,
   AuthResult,
@@ -118,13 +118,15 @@ export const createProject = (name: string): Promise<Project> => {
   return wait(2500, project)
 }
 
-export const createEnv = (newEnv: NewEnv): Promise<Env> => {
-  const env = {
-    id: '3948495fds',
-    ...newEnv,
-  }
+export const createEnv: CreateEnv = async options => {
+  const result: { environment: Env } = await api<{ environment: Env }>({
+    path: 'environment',
+    dev: options.dev,
+    apiKey: options.apiKey,
+    payload: options.environment,
+  })
 
-  return wait(2500, env)
+  return result.environment
 }
 
 export const getAuthToken: GetAuthToken = async options => {

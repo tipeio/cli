@@ -120,6 +120,10 @@ export interface CheckAPIKey {
   (options: { dev: boolean; apiKey: string }): Promise<boolean>
 }
 
+export interface CreateEnv {
+  (options: { dev: boolean; apiKey: string; environment: NewEnv }): Promise<Env>
+}
+
 export type Framework = 'gatsby' | 'react' | 'angular' | 'gridsome' | 'vue' | 'nuxt' | 'next'
 export type Dashboard = 'gatsby-theme' | 'standalone' | 'nuxt' | 'next' | 'vue' | 'react' | 'gridsome'
 export type APIError =
