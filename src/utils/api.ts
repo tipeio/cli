@@ -62,7 +62,7 @@ const wait = (time: number, payload: any): Promise<any> =>
   })
 
 export const openAuthWindow = (config: { dev: boolean; token: string }): Promise<ChildProcess> =>
-  open(`${getURL(config.dev)}/cli-signup?cliuuid=${config.token}`)
+  open(`${getURL(config.dev)}/cli-signup?cli_token=${config.token}`)
 
 export const checkAPIKey: CheckAPIKey = async options => {
   const [error] = await asyncWrap<any, APIError>(

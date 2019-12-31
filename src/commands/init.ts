@@ -54,8 +54,6 @@ export const init: CommandConfig = {
       validKey = await checkAPIKey({ dev: options.dev, apiKey: userKey })
     }
 
-    console.log(userKey, validKey)
-
     if (!userKey || !validKey) {
       const spinner = ora(prints.openingAuth).start()
       const [error, token] = await resolve(getAuthToken({ dev: options.dev }))
