@@ -19,11 +19,9 @@ import {
 
 const DEV_URL = 'http://localhost:8000'
 const PROD_URL = 'https://api.tipe.io'
+
 const isUnauthorized = (error: APIError): boolean =>
   error.name === 'HTTPError' && (error as HTTPError).response.statusCode === 401
-
-const isServerError = (error: APIError): boolean =>
-  error.name === 'HTTPError' && (error as HTTPError).response.statusCode !== 401
 
 const getURL = (dev: boolean): string => (dev ? DEV_URL : PROD_URL)
 
@@ -62,12 +60,12 @@ const wait = (time: number, payload: any): Promise<any> =>
   })
 
 export const openAuthWindow = (config: { dev: boolean; token: string }): Promise<ChildProcess> =>
-  open(`${getURL(config.dev)}/cli-signup?cli_token=${config.token}`)
+  open(`${getURL(config.dev)}/cli/signup?cli_token=${config.token}`)
 
 export const checkAPIKey: CheckAPIKey = async options => {
   const [error] = await asyncWrap<any, APIError>(
     api<any>({
-      path: 'key-check',
+      path: 'cli/check',
       dev: options.dev,
       apiKey: options.apiKey,
     }),
@@ -92,7 +90,7 @@ export const getProjects: GetProjects = async (options): Promise<Project[]> => {
 
 export const createFirstProject: CreateFirstProject = async options => {
   const result: { project: Project } = await api<{ project: Project }>({
-    path: 'cli-init',
+    path: 'cli/init',
     dev: options.dev,
     payload: { name: options.name },
     apiKey: options.apiKey,
@@ -131,7 +129,7 @@ export const createEnv: CreateEnv = async options => {
 
 export const getAuthToken: GetAuthToken = async options => {
   const result: { token: { value: string } } = await api<{ token: { value: string } }>({
-    path: 'cli-token',
+    path: 'cli/token',
     dev: options.dev,
   })
   return result.token.value
@@ -145,7 +143,7 @@ export const authenticate: Authenticate = async options => {
 
   return poll.execute(async () => {
     const result: AuthResult = await api<AuthResult>({
-      path: 'swap',
+      path: 'cli/swap',
       dev: options.dev,
       payload: { token: options.token },
       timeout: httpTimeout, // http timeout
