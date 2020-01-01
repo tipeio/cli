@@ -1,7 +1,7 @@
 import ora from 'ora'
 import prog from 'caporal'
 import { CommandConfig, PromptHooks, Env, Project } from '../types'
-import { resolve } from '../utils/resolve'
+import { asyncWrap } from '../utils/async'
 import config from '../utils/config'
 import prints from '../utils/prints'
 import { installDashboard } from '../utils/install'
@@ -39,10 +39,7 @@ const promptHooks = (cliOptions: any): PromptHooks => ({
 export const init: CommandConfig = {
   command: 'init',
   description: 'Create a new Tipe project',
-  options: [
-    { option: '--skip', description: 'skip things' },
-    { option: '--dev', description: 'run command in dev mode', type: prog.BOOLEAN },
-  ],
+  options: [{ option: '--dev', description: 'run command in dev mode', type: prog.BOOLEAN }],
   async action(__, options, logger) {
     logger.info(prints.header)
     logger.info(prints.intro)
@@ -56,7 +53,7 @@ export const init: CommandConfig = {
 
     if (!userKey || !validKey) {
       const spinner = ora(prints.openingAuth).start()
-      const [error, token] = await resolve(getAuthToken({ dev: options.dev }))
+      const [error, token] = await asyncWrap(getAuthToken({ dev: options.dev }))
 
       if (error) {
         return spinner.fail(prints.authError)
@@ -65,7 +62,7 @@ export const init: CommandConfig = {
       await openAuthWindow({ token, dev: options.dev })
 
       spinner.text = prints.waitingForAuth
-      const [userError, user] = await resolve(authenticate({ dev: options.dev, token }))
+      const [userError, user] = await asyncWrap(authenticate({ dev: options.dev, token }))
 
       if (userError) {
         return spinner.fail(prints.authError)

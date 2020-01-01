@@ -9,7 +9,7 @@ import {
   CancelError,
 } from 'got'
 
-export type AsyncResult = Error[] | [null, any]
+export type AsyncWrapped<T> = [Error] | [null, T]
 
 export interface AuthResult {
   key: string

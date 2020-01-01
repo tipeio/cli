@@ -63,7 +63,7 @@ export const openAuthWindow = (config: { dev: boolean; token: string }): Promise
   open(`${getURL(config.dev)}/cli/signup?cli_token=${config.token}`)
 
 export const checkAPIKey: CheckAPIKey = async options => {
-  const [error] = await asyncWrap<any, APIError>(
+  const [error] = await asyncWrap<any>(
     api<any>({
       path: 'cli/check',
       dev: options.dev,
@@ -72,7 +72,7 @@ export const checkAPIKey: CheckAPIKey = async options => {
   )
 
   if (error) {
-    if (isUnauthorized(error)) return false
+    if (isUnauthorized(error as APIError)) return false
     throw error
   }
 
