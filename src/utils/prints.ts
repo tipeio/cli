@@ -15,6 +15,11 @@ const foundAuth = `${ls.success} Account found.`
 const authError = `Oh no :(. We are having trouble right now.`
 const gettingProjects = '...Fetching your projects'
 const projectsLoaded = 'Projects loaded'
+const projectsError = 'Could not get Projects'
+const noProjects = `You don't have any projects. To create one run:
+
+tipe init
+`
 const authenticated = (_: TemplateStringsArray, email: any): string =>
   `Authentication for ${email} sucess 💯. Saving for next time`
 
@@ -26,6 +31,10 @@ const creatingEnv = '... Creating Environment'
 
 const createdProject = 'Project created'
 const createdEnv = 'Environment created'
+const needToAuth = `Account not found. To get started run:
+
+tipe init
+`
 
 const notAuthenticated = `Account not found`
 const openingAuth = `Opening browser so you can signin or signup 😘`
@@ -80,4 +89,7 @@ export default {
   installed,
   creatingFirstProject,
   createdFirstProject,
+  needToAuth,
+  projectsError,
+  noProjects,
 }
