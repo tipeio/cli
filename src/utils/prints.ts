@@ -12,6 +12,10 @@ Lets's get started 🚀
 `
 
 const foundAuth = `${ls.success} Account found.`
+const alreadyAuth = `${ls.info} Account found. You're already signed in. To signout run:
+tipe signout
+`
+const signedout = `${ls.success} Successfully signed out`
 const authError = `Oh no :(. We are having trouble right now.`
 const gettingProjects = '...Fetching your projects'
 const projectsLoaded = 'Projects loaded'
@@ -92,4 +96,6 @@ export default {
   needToAuth,
   projectsError,
   noProjects,
+  alreadyAuth,
+  signedout,
 }
