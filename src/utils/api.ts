@@ -80,7 +80,7 @@ export const checkAPIKey: CheckAPIKey = async options => {
 }
 export const getProjects: GetProjects = async (options): Promise<Project[]> => {
   const result: { projects: Project[] } = await api<{ projects: Project[] }>({
-    path: 'projects',
+    path: 'project',
     dev: options.dev,
     apiKey: options.apiKey,
   })
