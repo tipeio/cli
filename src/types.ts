@@ -16,9 +16,12 @@ export interface AuthResult {
   user: any
 }
 
+export type HTTPMethod = 'get' | 'post' | 'put' | 'patch'
+
 export interface APIConfig {
   dev: boolean
   path: string
+  method?: HTTPMethod
   timeout?: number
   payload?: any
   apiKey?: string

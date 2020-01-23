@@ -15,6 +15,7 @@ import {
   GetProjects,
   CheckAPIKey,
   APIError,
+  HTTPMethod,
 } from '../types'
 
 const DEV_URL = 'http://localhost:8000'
@@ -40,7 +41,7 @@ async function api<T>(options: APIConfig): Promise<T> {
     config.json = options.payload
   }
 
-  if (options.project) {
+  if (options.project && options.method !== 'get') {
     if (config.json) {
       config.json = { ...config.json, project: options.project }
     } else {
@@ -48,7 +49,8 @@ async function api<T>(options: APIConfig): Promise<T> {
     }
   }
 
-  const result: any = await got.post(options.path, config).json()
+  const method: HTTPMethod = options.method || 'post'
+  const result: any = await got[method](options.path, config).json()
   return result.data
 }
 
@@ -80,9 +82,10 @@ export const checkAPIKey: CheckAPIKey = async options => {
 }
 export const getProjects: GetProjects = async (options): Promise<Project[]> => {
   const result: { projects: Project[] } = await api<{ projects: Project[] }>({
-    path: 'projects',
+    path: 'project',
     dev: options.dev,
     apiKey: options.apiKey,
+    method: 'get',
   })
 
   return result.projects
