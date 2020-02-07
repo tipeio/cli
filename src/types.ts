@@ -123,6 +123,26 @@ export interface CheckAPIKey {
   (options: { dev: boolean; apiKey: string }): Promise<boolean>
 }
 
+export interface CreateAPIKey {
+  (options: { dev: boolean; apiKey: string; project: string }): Promise<{ apiKey: string }>
+}
+
+export interface ApiKey {
+  read: boolean
+  write: boolean
+  _id: string
+  name: string
+  project?: string
+  type: string
+  value: string
+}
+
+export interface RetrieveAPIKeys {
+  (options: { dev: boolean; apiKey: string; project: string }): Promise<{
+    apiKeys: ApiKey[]
+  }>
+}
+
 export interface CreateEnv {
   (options: { dev: boolean; apiKey: string; environment: NewEnv }): Promise<Env>
 }
