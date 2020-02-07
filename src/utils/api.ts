@@ -14,6 +14,9 @@ import {
   CreateFirstProject,
   GetProjects,
   CheckAPIKey,
+  CreateAPIKey,
+  RetrieveAPIKeys,
+  ApiKey,
   APIError,
   HTTPMethod,
 } from '../types'
@@ -158,4 +161,28 @@ export const authenticate: Authenticate = async options => {
       return false
     }
   })
+}
+
+export const createAPIKey: CreateAPIKey = async (options): Promise<{ apiKey: string }> => {
+  const result: { apiKey: string } = await api<{ apiKey: string }>({
+    path: 'cli/apikey',
+    dev: options.dev,
+    apiKey: options.apiKey,
+    project: options.project,
+    method: 'post',
+  })
+
+  return result
+}
+
+export const retrieveAPIKeys: RetrieveAPIKeys = async (options): Promise<{ apiKeys: ApiKey[] }> => {
+  const result: { apiKeys: ApiKey[] } = await api<{ apiKeys: ApiKey[] }>({
+    path: 'cli/apikeys',
+    dev: options.dev,
+    apiKey: options.apiKey,
+    project: options.project,
+    method: 'post',
+  })
+
+  return result
 }
