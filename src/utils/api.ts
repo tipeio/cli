@@ -21,16 +21,15 @@ import {
   HTTPMethod,
 } from '../types'
 
-const DEV_URL = 'http://localhost:8000'
-const PROD_URL = 'https://api.tipe.io'
+const PROD_URL = 'https://api.admin.tipe.io'
 
 const isUnauthorized = (error: APIError): boolean =>
   error.name === 'HTTPError' && (error as HTTPError).response.statusCode === 401
 
-const getURL = (dev: boolean): string => (dev ? DEV_URL : PROD_URL)
+const getURL = (host: string): string => (host ? host : PROD_URL)
 
 async function api<T>(options: APIConfig): Promise<T> {
-  const config: any = { prefixUrl: getURL(options.dev) }
+  const config: any = { prefixUrl: getURL(options.host) }
 
   if (options.timeout) {
     config.timeout = options.timeout
@@ -64,14 +63,14 @@ const wait = (time: number, payload: any): Promise<any> =>
     }, time)
   })
 
-export const openAuthWindow = (config: { dev: boolean; token: string }): Promise<ChildProcess> =>
-  open(`${getURL(config.dev)}/cli/signup?cli_token=${config.token}`)
+export const openAuthWindow = (config: { host: string; token: string }): Promise<ChildProcess> =>
+  open(`${getURL(config.host)}/api/cli/signup?cli_token=${config.token}`)
 
 export const checkAPIKey: CheckAPIKey = async options => {
   const [error] = await asyncWrap<any>(
     api<any>({
-      path: 'cli/check',
-      dev: options.dev,
+      path: 'api/cli/check',
+      host: options.host,
       apiKey: options.apiKey,
     }),
   )
@@ -84,59 +83,44 @@ export const checkAPIKey: CheckAPIKey = async options => {
   return true
 }
 export const getProjects: GetProjects = async (options): Promise<Project[]> => {
-  const result: { projects: Project[] } = await api<{ projects: Project[] }>({
-    path: 'project',
-    dev: options.dev,
+  const result = await api<Project[]>({
+    path: 'api/projects',
+    host: options.host,
     apiKey: options.apiKey,
     method: 'get',
   })
 
-  return result.projects
+  return result
 }
 
 export const createFirstProject: CreateFirstProject = async options => {
-  const result: { project: Project } = await api<{ project: Project }>({
-    path: 'cli/init',
-    dev: options.dev,
+  const result = await api<Project>({
+    path: 'api/cli/init',
+    host: options.host,
+    method: 'post',
     payload: { name: options.name },
     apiKey: options.apiKey,
   })
 
-  return result.project
-}
-
-export const createProject = (name: string): Promise<Project> => {
-  const project = {
-    name,
-    id: '3984hdsa9843',
-    envs: [
-      {
-        id: '3948495fds',
-        private: false,
-        name: 'Production',
-        project: '3984hdsa9843',
-      },
-    ],
-  }
-
-  return wait(2500, project)
+  return result
 }
 
 export const createEnv: CreateEnv = async options => {
-  const result: { environment: Env } = await api<{ environment: Env }>({
-    path: 'environment',
-    dev: options.dev,
+  const result = await api<Env>({
+    path: 'api/projects/createEnvironment',
+    host: options.host,
+    method: 'post',
     apiKey: options.apiKey,
     payload: options.environment,
   })
 
-  return result.environment
+  return result
 }
 
 export const getAuthToken: GetAuthToken = async options => {
   const result: { token: { value: string } } = await api<{ token: { value: string } }>({
-    path: 'cli/token',
-    dev: options.dev,
+    path: 'api/cli/token',
+    host: options.host,
   })
   return result.token.value
 }
@@ -149,8 +133,8 @@ export const authenticate: Authenticate = async options => {
 
   return poll.execute(async () => {
     const result: AuthResult = await api<AuthResult>({
-      path: 'cli/swap',
-      dev: options.dev,
+      path: 'api/cli/swap',
+      host: options.host,
       payload: { token: options.token },
       timeout: httpTimeout, // http timeout
     })
@@ -165,8 +149,8 @@ export const authenticate: Authenticate = async options => {
 
 export const createAPIKey: CreateAPIKey = async (options): Promise<{ apiKey: string }> => {
   const result: { apiKey: string } = await api<{ apiKey: string }>({
-    path: 'cli/apikey',
-    dev: options.dev,
+    path: 'api/cli/apikey',
+    host: options.host,
     apiKey: options.apiKey,
     project: options.project,
     method: 'post',
@@ -177,8 +161,8 @@ export const createAPIKey: CreateAPIKey = async (options): Promise<{ apiKey: str
 
 export const retrieveAPIKeys: RetrieveAPIKeys = async (options): Promise<{ apiKeys: ApiKey[] }> => {
   const result: { apiKeys: ApiKey[] } = await api<{ apiKeys: ApiKey[] }>({
-    path: 'cli/apikeys',
-    dev: options.dev,
+    path: 'api/cli/apikeys',
+    host: options.host,
     apiKey: options.apiKey,
     project: options.project,
     method: 'post',

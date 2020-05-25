@@ -6,6 +6,11 @@ export const signout: CommandConfig = {
   command: 'signout',
   description: 'Signout from Tipe',
   action(__, ___, logger) {
+    const auth = config.getAuth()
+    if (!auth) {
+      return logger.info(`You're not signed in`)
+    }
+
     config.removeAuth()
     logger.info(prints.signedout)
   },

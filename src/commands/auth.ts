@@ -9,13 +9,13 @@ import { checkAPIKey, getAuthToken, openAuthWindow, authenticate } from '../util
 export const auth: CommandConfig = {
   command: 'auth',
   description: 'Signin or Signup',
-  options: [{ option: '--dev', description: 'run command in dev mode', type: prog.BOOLEAN }],
+  options: [{ option: '--host', description: 'host to use', type: prog.STRING }],
   async action(__, options, logger) {
     const userKey = config.getAuth()
     let validKey = false
 
     if (userKey) {
-      validKey = await checkAPIKey({ dev: options.dev, apiKey: userKey })
+      validKey = await checkAPIKey({ host: options.host, apiKey: userKey })
     }
 
     if (userKey || validKey) {
@@ -23,17 +23,17 @@ export const auth: CommandConfig = {
     }
 
     const spinner = ora(prints.openingAuth).start()
-    const [error, token] = await asyncWrap(getAuthToken({ dev: options.dev }))
+    const [error, token] = await asyncWrap(getAuthToken({ host: options.host }))
 
     if (error) {
       return spinner.fail(prints.authError)
     }
 
-    await openAuthWindow({ token, dev: options.dev })
+    await openAuthWindow({ token, host: options.host })
 
     spinner.text = prints.waitingForAuth
 
-    const [userError, result] = await asyncWrap(authenticate({ dev: options.dev, token }))
+    const [userError, result] = await asyncWrap(authenticate({ host: options.host, token }))
 
     if (userError) {
       return spinner.fail(prints.authError)

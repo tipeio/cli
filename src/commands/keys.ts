@@ -9,7 +9,7 @@ export const keys: CommandConfig = {
   command: 'keys',
   description: 'create or list apikeys',
   options: [
-    { option: '--dev', description: 'run command in dev mode', type: prog.BOOLEAN },
+    { option: '--host', description: 'host', type: prog.STRING },
     { option: '--project', description: 'project id', type: prog.STRING },
     { option: '--list', description: 'list apikeys', type: prog.BOOLEAN },
   ],
@@ -18,7 +18,7 @@ export const keys: CommandConfig = {
     let validKey = false
 
     if (userKey) {
-      validKey = await checkAPIKey({ dev: options.dev, apiKey: userKey })
+      validKey = await checkAPIKey({ host: options.host, apiKey: userKey })
     }
 
     if (!userKey || !validKey) {
@@ -26,7 +26,7 @@ export const keys: CommandConfig = {
     }
 
     if (options.list) {
-      const { apiKeys } = await retrieveAPIKeys({ dev: options.dev, project: options.project, apiKey: userKey })
+      const { apiKeys } = await retrieveAPIKeys({ host: options.host, project: options.project, apiKey: userKey })
       const table = new Table({
         head: ['project', 'api-key'],
       })
@@ -35,7 +35,7 @@ export const keys: CommandConfig = {
       return
     }
 
-    const { apiKey } = await createAPIKey({ dev: options.dev, project: options.project, apiKey: userKey })
+    const { apiKey } = await createAPIKey({ host: options.host, project: options.project, apiKey: userKey })
     const table = new Table({
       head: ['api-key'],
     })

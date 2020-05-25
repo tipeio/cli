@@ -18,13 +18,13 @@ ${env.id}: ${env.name}: ${env.private ? 'Private' : 'Public'}
 export const projects: CommandConfig = {
   command: 'projects',
   description: 'List all your Tipe projects',
-  options: [{ option: '--dev', description: 'run command in dev mode', type: prog.BOOLEAN }],
+  options: [{ option: '--host', description: 'host', type: prog.STRING }],
   async action(__, options, logger) {
     const userKey = config.getAuth()
     let validKey = false
 
     if (userKey) {
-      validKey = await checkAPIKey({ dev: options.dev, apiKey: userKey })
+      validKey = await checkAPIKey({ host: options.host, apiKey: userKey })
     }
 
     if (!userKey || !validKey) {
@@ -34,7 +34,7 @@ export const projects: CommandConfig = {
     const spinner = ora(prints.gettingProjects).start()
     const [error, projects = []] = await asyncWrap(
       getProjects({
-        dev: options.dev,
+        host: options.host,
         apiKey: userKey,
       }),
     )

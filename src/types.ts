@@ -19,8 +19,8 @@ export interface AuthResult {
 export type HTTPMethod = 'get' | 'post' | 'put' | 'patch'
 
 export interface APIConfig {
-  dev: boolean
   path: string
+  host?: string
   method?: HTTPMethod
   timeout?: number
   payload?: any
@@ -104,27 +104,27 @@ export interface Frameworks {
 }
 
 export interface GetAuthToken {
-  (options: { dev: boolean }): Promise<string>
+  (options: { host: string }): Promise<string>
 }
 
 export interface Authenticate {
-  (options: { dev: boolean; token: string }): Promise<AuthResult>
+  (options: { host: string; token: string }): Promise<AuthResult>
 }
 
 export interface CreateFirstProject {
-  (options: { dev: boolean; name: string; apiKey: string }): Promise<Project>
+  (options: { host: string; name: string; apiKey: string }): Promise<Project>
 }
 
 export interface GetProjects {
-  (options: { dev: boolean; apiKey: string }): Promise<Project[]>
+  (options: { host: string; apiKey: string }): Promise<Project[]>
 }
 
 export interface CheckAPIKey {
-  (options: { dev: boolean; apiKey: string }): Promise<boolean>
+  (options: { host?: string; apiKey: string }): Promise<boolean>
 }
 
 export interface CreateAPIKey {
-  (options: { dev: boolean; apiKey: string; project: string }): Promise<{ apiKey: string }>
+  (options: { host: string; apiKey: string; project: string }): Promise<{ apiKey: string }>
 }
 
 export interface ApiKey {
@@ -138,13 +138,13 @@ export interface ApiKey {
 }
 
 export interface RetrieveAPIKeys {
-  (options: { dev: boolean; apiKey: string; project: string }): Promise<{
+  (options: { host: string; apiKey: string; project: string }): Promise<{
     apiKeys: ApiKey[]
   }>
 }
 
 export interface CreateEnv {
-  (options: { dev: boolean; apiKey: string; environment: NewEnv }): Promise<Env>
+  (options: { host: string; apiKey: string; environment: NewEnv }): Promise<Env>
 }
 
 export type Framework = 'gatsby' | 'react' | 'angular' | 'gridsome' | 'vue' | 'nuxt' | 'next'
