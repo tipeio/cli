@@ -6,6 +6,7 @@ import config from '../utils/config'
 import prints from '../utils/prints'
 import { installDashboard } from '../utils/install'
 import { initPrompts } from '../utils/prompts'
+import { globalOptions } from '../utils/options'
 import {
   checkAPIKey,
   getProjects,
@@ -39,7 +40,7 @@ const promptHooks = (cliOptions: any, logger: any): PromptHooks => ({
 export const init: CommandConfig = {
   command: 'init',
   description: 'Create a new Tipe project',
-  options: [{ option: '--host', description: 'host', type: prog.STRING }],
+  options: [...globalOptions],
   async action(__, options, logger) {
     logger.info(prints.header)
     logger.info(prints.intro)

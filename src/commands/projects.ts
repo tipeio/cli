@@ -7,6 +7,7 @@ import { asyncWrap } from '../utils/async'
 import config from '../utils/config'
 import prints from '../utils/prints'
 import { getProjects, checkAPIKey } from '../utils/api'
+import { globalOptions } from '../utils/options'
 
 const formatEnvs = (envs: Env[]): string =>
   envs.reduce((result, env) => {
@@ -18,7 +19,7 @@ ${env.id}: ${env.name}: ${env.private ? 'Private' : 'Public'}
 export const projects: CommandConfig = {
   command: 'projects',
   description: 'List all your Tipe projects',
-  options: [{ option: '--host', description: 'host', type: prog.STRING }],
+  options: [...globalOptions],
   async action(__, options, logger) {
     const userKey = config.getAuth()
     let validKey = false

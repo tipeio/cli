@@ -4,12 +4,13 @@ import Table from 'cli-table'
 import config from '../utils/config'
 import prints from '../utils/prints'
 import { checkAPIKey, createAPIKey, retrieveAPIKeys } from '../utils/api'
+import { globalOptions } from '../utils/options'
 
 export const keys: CommandConfig = {
   command: 'keys',
   description: 'create or list apikeys',
   options: [
-    { option: '--host', description: 'host', type: prog.STRING },
+    ...globalOptions,
     { option: '--project', description: 'project id', type: prog.STRING },
     { option: '--list', description: 'list apikeys', type: prog.BOOLEAN },
   ],

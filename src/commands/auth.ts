@@ -1,15 +1,15 @@
 import ora from 'ora'
-import prog from 'caporal'
 import { CommandConfig, Env } from '../types'
 import { asyncWrap } from '../utils/async'
 import config from '../utils/config'
 import prints from '../utils/prints'
 import { checkAPIKey, getAuthToken, openAuthWindow, authenticate } from '../utils/api'
+import { globalOptions } from '../utils/options'
 
 export const auth: CommandConfig = {
   command: 'auth',
   description: 'Signin or Signup',
-  options: [{ option: '--host', description: 'host to use', type: prog.STRING }],
+  options: [...globalOptions],
   async action(__, options, logger) {
     const userKey = config.getAuth()
     let validKey = false
