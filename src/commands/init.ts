@@ -1,11 +1,11 @@
 import ora from 'ora'
+import { CommandConfig, PromptHooks, Env, Project } from '../types'
 import { asyncWrap } from '../utils/async'
 import config from '../utils/config'
 import prints from '../utils/prints'
 import { installDashboard } from '../utils/install'
 import { initPrompts } from '../utils/prompts'
 import { globalOptions } from '../utils/options'
-import { CommandConfig, PromptHooks, Env, Project } from '../types'
 import {
   checkAPIKey,
   getProjects,
@@ -68,6 +68,8 @@ export const init: CommandConfig = {
       if (userError) {
         return spinner.fail(prints.authError)
       }
+
+      logger.info(user)
 
       config.setAuth(user.key)
       userKey = user.key

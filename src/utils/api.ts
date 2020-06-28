@@ -14,7 +14,6 @@ import {
   CreateFirstProject,
   GetProjects,
   CheckAPIKey,
-  CreateAPIKey,
   RetrieveAPIKeys,
   ApiKey,
   APIError,
@@ -55,13 +54,6 @@ async function api<T>(options: APIConfig): Promise<T> {
   const result: any = await got[method](options.path, config).json()
   return result.data
 }
-
-const wait = (time: number, payload: any): Promise<any> =>
-  new Promise(resolve => {
-    setTimeout(() => {
-      resolve(payload)
-    }, time)
-  })
 
 export const openAuthWindow = (config: { host: string; token: string }): Promise<ChildProcess> =>
   open(`${getURL(config.host)}/api/cli/signup?cli_token=${config.token}`)
@@ -147,13 +139,17 @@ export const authenticate: Authenticate = async options => {
   })
 }
 
-export const createAPIKey: CreateAPIKey = async (options): Promise<{ apiKey: string }> => {
-  const result: { apiKey: string } = await api<{ apiKey: string }>({
-    path: 'api/cli/apikey',
+export const createAPIKey = async (options: {
+  host: string
+  apiKey: string
+  name: string
+}): Promise<{ name: string; key: string }> => {
+  const result = await api<{ name: string; key: string }>({
+    path: 'api/cli/key',
     host: options.host,
     apiKey: options.apiKey,
-    project: options.project,
     method: 'post',
+    payload: { name: options.name },
   })
 
   return result

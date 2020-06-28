@@ -125,7 +125,7 @@ export interface CheckAPIKey {
 }
 
 export interface CreateAPIKey {
-  (options: { host: string; apiKey: string; project: string }): Promise<{ apiKey: string }>
+  (options: { host: string; apiKey: string; project: string }): Promise<{ name: string; apiKey: string }>
 }
 
 export interface ApiKey {
