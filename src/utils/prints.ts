@@ -4,7 +4,9 @@ import ls from 'log-symbols'
 import boxen from 'boxen'
 import chalk from 'chalk'
 
-const header = gradient.vice(figlet.textSync('Tipe\n\n  CLI'))
+const header = gradient.vice(figlet.textSync('Tipe'))
+const creatingAPIKey = `...Creating API Key`
+const errorCreatingAPIKey = 'Could not create an API Key'
 
 const intro = `
 Thanks for using Tipe. You're about 3 mins away from complete content freedom!
@@ -98,4 +100,6 @@ export default {
   noProjects,
   alreadyAuth,
   signedout,
+  errorCreatingAPIKey,
+  creatingAPIKey,
 }

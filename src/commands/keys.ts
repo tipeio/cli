@@ -1,6 +1,7 @@
 import { program } from '@caporal/core'
 import { CommandConfig } from '../types'
 import Table from 'cli-table'
+import ora from 'ora'
 import config from '../utils/config'
 import prints from '../utils/prints'
 import { checkAPIKey, createAPIKey, retrieveAPIKeys } from '../utils/api'
@@ -11,8 +12,8 @@ export const keys: CommandConfig = {
   description: 'create or list apikeys',
   options: [
     ...globalOptions,
-    { option: '--project', description: 'project id', config: { validator: program.STRING } },
-    { option: '--list', description: 'list apikeys', config: { validator: program.BOOLEAN } },
+    { option: '--list [list]', description: 'List All your API keys', type: prog.BOOLEAN },
+    { option: '--name [name]', description: 'Name your API Key', type: prog.STRING },
   ],
   async action({ options, logger }) {
     const userKey = config.getAuth()
@@ -33,7 +34,7 @@ export const keys: CommandConfig = {
         apiKey: userKey,
       } as any)
       const table = new Table({
-        head: ['project', 'api-key'],
+        head: ['Name', 'Key'],
       })
 
       table.push(...apiKeys.map(key => [key.project, key.value]))
@@ -41,12 +42,26 @@ export const keys: CommandConfig = {
       return
     }
 
-    const { apiKey } = await createAPIKey({ host: options.host, project: options.project, apiKey: userKey } as any)
-    const table = new Table({
-      head: ['api-key'],
-    })
+    if (!options.name) {
+      logger.error('🚫')
+      logger.error('To create an API Key, you must supply a name')
+      logger.error('To list your API Keys, use the "--list" flag')
+      return
+    }
 
-    table.push([apiKey])
-    console.log(table.toString())
+    try {
+      const spinner = ora(prints.creatingAPIKey).start()
+      const { key, name } = await createAPIKey({ host: options.host, apiKey: userKey, name: options.name })
+      spinner.succeed()
+
+      const table = new Table({
+        head: ['Name', 'Key'],
+      })
+
+      table.push([name, key])
+      console.log(table.toString())
+    } catch (e) {
+      logger.error(prints.errorCreatingAPIKey)
+    }
   },
 }
