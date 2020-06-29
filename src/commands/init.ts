@@ -69,8 +69,6 @@ export const init: CommandConfig = {
         return spinner.fail(prints.authError)
       }
 
-      logger.info(user)
-
       config.setAuth(user.key)
       userKey = user.key
       spinner.succeed(prints.authenticated`${user.user.email}`)
