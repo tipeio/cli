@@ -1,9 +1,10 @@
-import prog from 'caporal'
+import { program } from '@caporal/core'
 import pjson from '../package.json'
 import { createCommands } from './utils/createCommand'
 import commands from './commands'
 
-prog.version(pjson.version)
-const program = createCommands(prog, commands)
+program.version(pjson.version)
 
-program.parse(process.argv)
+const cli = createCommands(program, commands)
+
+cli.run(process.argv.slice(2))

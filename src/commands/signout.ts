@@ -5,8 +5,9 @@ import prints from '../utils/prints'
 export const signout: CommandConfig = {
   command: 'signout',
   description: 'Signout from Tipe',
-  action(__, ___, logger) {
+  action({ logger }) {
     const auth = config.getAuth()
+
     if (!auth) {
       return logger.info(`You're not signed in`)
     }

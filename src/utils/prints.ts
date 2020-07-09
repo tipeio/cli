@@ -4,7 +4,7 @@ import ls from 'log-symbols'
 import boxen from 'boxen'
 import chalk from 'chalk'
 
-const header = gradient.vice(figlet.textSync('Tipe'))
+const header = gradient.vice(figlet.textSync('Tipe\n\n  CLI'))
 
 const intro = `
 Thanks for using Tipe. You're about 3 mins away from complete content freedom!

@@ -1,3 +1,5 @@
-import prog from 'caporal'
+import { program } from '@caporal/core'
 
-export const globalOptions = [{ option: '--host [host]', description: 'host to use', type: prog.STRING }]
+export const globalOptions = [
+  { option: '--host [host]', description: 'host to use', config: { validator: program.STRING } },
+]
