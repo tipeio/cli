@@ -1,5 +1,4 @@
 import ora from 'ora'
-import prog from 'caporal'
 import ls from 'log-symbols'
 import Table from 'cli-table'
 import { CommandConfig, Env } from '../types'
@@ -20,12 +19,12 @@ export const projects: CommandConfig = {
   command: 'projects',
   description: 'List all your Tipe projects',
   options: [...globalOptions],
-  async action(__, options, logger) {
+  async action({ options, logger }) {
     const userKey = config.getAuth()
     let validKey = false
 
     if (userKey) {
-      validKey = await checkAPIKey({ host: options.host, apiKey: userKey })
+      validKey = await checkAPIKey({ host: options.host, apiKey: userKey } as any)
     }
 
     if (!userKey || !validKey) {
@@ -37,7 +36,7 @@ export const projects: CommandConfig = {
       getProjects({
         host: options.host,
         apiKey: userKey,
-      }),
+      } as any),
     )
 
     if (error) {
@@ -56,7 +55,7 @@ export const projects: CommandConfig = {
       colWidths: [30, 50, 50],
     })
 
-    table.push(...projects.map(project => [project.id, project.name, formatEnvs(project.environments)]))
+    table.push(...projects.map((project: any) => [project.id, project.name, formatEnvs(project.environments)]))
     spinner.succeed(prints.projectsLoaded)
 
     console.log(table.toString())

@@ -10,7 +10,7 @@ export const auth: CommandConfig = {
   command: 'auth',
   description: 'Signin or Signup',
   options: [...globalOptions],
-  async action(__, options, logger) {
+  async action({ options, logger }) {
     const userKey = config.getAuth()
     let validKey = false
 

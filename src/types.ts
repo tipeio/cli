@@ -8,6 +8,7 @@ import {
   TimeoutError,
   CancelError,
 } from 'got'
+import { Action } from '@caporal/core'
 
 export type AsyncWrapped<T> = [Error] | [null, T]
 
@@ -38,14 +39,14 @@ export interface CommandArgument {
 export interface CommandOption {
   option: string
   description: string
-  type?: any
-  default?: any
+  config?: { validator?: any; default?: any; required?: boolean }
 }
 
 export interface CommandConfig {
   command: string
+  default?: boolean
   description: string
-  action: ActionCallback
+  action: Action
   arguments?: CommandArgument[]
   options?: CommandOption[]
 }

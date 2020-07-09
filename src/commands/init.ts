@@ -1,12 +1,11 @@
 import ora from 'ora'
-import prog from 'caporal'
-import { CommandConfig, PromptHooks, Env, Project } from '../types'
 import { asyncWrap } from '../utils/async'
 import config from '../utils/config'
 import prints from '../utils/prints'
 import { installDashboard } from '../utils/install'
 import { initPrompts } from '../utils/prompts'
 import { globalOptions } from '../utils/options'
+import { CommandConfig, PromptHooks, Env, Project } from '../types'
 import {
   checkAPIKey,
   getProjects,
@@ -17,7 +16,7 @@ import {
   createEnv,
 } from '../utils/api'
 
-const promptHooks = (cliOptions: any, logger: any): PromptHooks => ({
+const promptHooks = (cliOptions: any): PromptHooks => ({
   async onCreateProject(options): Promise<Project> {
     const apiKey = config.getAuth()
     const spinner = ora(prints.creatingFirstProject).start()
@@ -39,17 +38,18 @@ const promptHooks = (cliOptions: any, logger: any): PromptHooks => ({
 
 export const init: CommandConfig = {
   command: 'init',
+  default: true,
   description: 'Create a new Tipe project',
   options: [...globalOptions],
-  async action(__, options, logger) {
-    logger.info(prints.header)
-    logger.info(prints.intro)
+  async action({ options, logger }) {
+    console.log(prints.header)
+    console.log(prints.intro)
 
     let userKey = config.getAuth()
     let validKey = false
 
     if (userKey) {
-      validKey = await checkAPIKey({ host: options.host, apiKey: userKey })
+      validKey = await checkAPIKey({ host: options.host, apiKey: userKey } as any)
     }
 
     if (!userKey || !validKey) {
@@ -60,7 +60,7 @@ export const init: CommandConfig = {
         return spinner.fail(prints.authError)
       }
 
-      await openAuthWindow({ token, host: options.host })
+      await openAuthWindow({ token, host: options.host } as any)
 
       spinner.text = prints.waitingForAuth
       const [userError, user] = await asyncWrap(authenticate({ host: options.host, token }))
@@ -80,7 +80,7 @@ export const init: CommandConfig = {
     const projects = await getProjects({ host: options.host, apiKey: userKey })
     spinner.succeed(prints.projectsLoaded)
 
-    const answers = await initPrompts(projects, promptHooks(options, logger))
+    const answers = await initPrompts(projects, promptHooks(options))
 
     spinner = ora(prints.installing).start()
 
