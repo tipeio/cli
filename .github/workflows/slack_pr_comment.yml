@@ -1,0 +1,18 @@
+name: Slack PR comment
+on:
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  Slack_message_job:
+    runs-on: ubuntu-latest
+    name: Slack a PR comment
+    steps:
+    - name: Get comment and Slack it
+      id: slack_pr
+      uses: tipeio/action-pr-comment@master
+      with:
+        userMap: '{"Hendrixer": "scott@tipe.io", "6Laq": "greg@tipe.io", "PhatStraw": "kevin@tipe.io", "realmike33": "mike@tipe.io", "traversng": "travis@tipe.io"}'
+        slackToken: ${{ secrets.SLACK_TOKEN }}
+        slackSigningSecret: ${{ secrets.SLACK_SIGNING_SECRET }}
+        githubToken: ${{ secrets.GH_REPO_TOKEN }}
