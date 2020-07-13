@@ -1,11 +1,13 @@
 import ora from 'ora'
-import { CommandConfig, PromptHooks, Env, Project } from '../types'
 import { asyncWrap } from '../utils/async'
 import config from '../utils/config'
 import prints from '../utils/prints'
-import { installDashboard } from '../utils/install'
+import { install } from '../utils/install'
 import { initPrompts } from '../utils/prompts'
 import { globalOptions } from '../utils/options'
+import { CommandConfig, PromptHooks, Env, Project } from '../types'
+import { getFramework, createTipeFolder } from '../utils/detect'
+import { greenCheck } from '../utils/symbols'
 import {
   checkAPIKey,
   getProjects,
@@ -54,7 +56,7 @@ export const init: CommandConfig = {
 
     if (!userKey || !validKey) {
       const spinner = ora(prints.openingAuth).start()
-      const [error, token] = await asyncWrap(getAuthToken({ host: options.host }))
+      const [error, token] = await asyncWrap(getAuthToken({ host: options.host } as any))
 
       if (error) {
         return spinner.fail(prints.authError)
@@ -63,7 +65,7 @@ export const init: CommandConfig = {
       await openAuthWindow({ token, host: options.host } as any)
 
       spinner.text = prints.waitingForAuth
-      const [userError, user] = await asyncWrap(authenticate({ host: options.host, token }))
+      const [userError, user] = await asyncWrap(authenticate({ host: options.host, token } as any))
 
       if (userError) {
         return spinner.fail(prints.authError)
@@ -73,22 +75,38 @@ export const init: CommandConfig = {
       userKey = user.key
       spinner.succeed(prints.authenticated`${user.user.email}`)
     } else {
-      logger.info(prints.foundAuth)
+      console.log(prints.foundAuth)
     }
 
-    let spinner = ora(prints.gettingProjects).start()
-    const projects = await getProjects({ host: options.host, apiKey: userKey })
+    const spinner = ora(prints.gettingProjects).start()
+    const projects = await getProjects({ host: options.host, apiKey: userKey } as any)
     spinner.succeed(prints.projectsLoaded)
 
     const answers = await initPrompts(projects, promptHooks(options))
 
-    spinner = ora(prints.installing).start()
-
+    let installSpinner
     try {
-      await installDashboard(answers.dashboard)
-      spinner.succeed(prints.installed`${answers.dashboard}`)
+      installSpinner = ora(prints.detectingFramework).start()
+      const { modules, name } = await getFramework()
+
+      if (name) {
+        installSpinner.succeed(`${name} app detected`)
+      } else {
+        installSpinner.succeed('Could not detect app')
+      }
+
+      installSpinner = ora('Creating tipe folder').start()
+      const schemaModules = await createTipeFolder()
+      installSpinner.succeed('Created folder "/tipe"')
+      console.log(`${greenCheck} Created schema file "/tipe/schema.js"`)
+
+      installSpinner = ora('Installing modules').start()
+      await install([...modules, ...schemaModules])
+      installSpinner.succeed('Modules installed')
+      console.log(prints.done('hello'))
     } catch (e) {
-      spinner.fail(prints.installError)
+      installSpinner.fail('Could not setup Tipe on your local project')
+      logger.error(e.message)
     }
   },
 }

@@ -57,13 +57,11 @@ ${chalk.bold('* standalone:   "git clone https://github.com/tipeio/dashboard-sta
 
 const installed = (_: TemplateStringsArray, dashboard: any): string => `Tipe dashboard (${dashboard}) installed 😎`
 
-const gatsbyDone = boxen(
-  `${chalk.bold("You're all set")} 🎉!
+const done = (message: string) =>
+  boxen(
+    `${chalk.bold("You're all set")} 🎉!
 
-To use the dashboard to edit content:
-1. Start your gatsby app
-2. Navigate to "/tipe"
-3. Enjoy 🏆
+${message}
 
 Check out our docs for more:
 
@@ -71,12 +69,15 @@ ${chalk.green('Guides')}         ${chalk.underline('https://tipe.io.docs')}
 ${chalk.green('API Reference')}  ${chalk.underline('https://tipe.io.docs')}
 ${chalk.green('Customizing')}    ${chalk.underline('https://tipe.io.docs')}
 `,
-  { borderColor: 'magenta', padding: 1 },
-)
+    { borderColor: 'magenta', padding: 1 },
+  )
+
+const detectingFramework = `Detecting framework 👀`
 
 export default {
+  detectingFramework,
   header,
-  gatsbyDone,
+  done,
   openingAuth,
   installing,
   waitingForAuth,
