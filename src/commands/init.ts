@@ -2,11 +2,11 @@ import ora from 'ora'
 import { asyncWrap } from '../utils/async'
 import config from '../utils/config'
 import prints from '../utils/prints'
-import { install } from '../utils/install'
+import { installModules } from '../utils/install'
 import { initPrompts } from '../utils/prompts'
 import { globalOptions } from '../utils/options'
 import { CommandConfig, PromptHooks, Env, Project } from '../types'
-import { getFramework, createTipeFolder } from '../utils/detect'
+import { getFramework, createTipeFolder, frameworks, getFrameworkByName } from '../utils/detect'
 import { greenCheck } from '../utils/symbols'
 import {
   checkAPIKey,
@@ -17,6 +17,7 @@ import {
   createFirstProject,
   createEnv,
 } from '../utils/api'
+import { schemaTemplate } from '../utils/templates'
 
 const promptHooks = (cliOptions: any): PromptHooks => ({
   async onCreateProject(options): Promise<Project> {
@@ -82,31 +83,37 @@ export const init: CommandConfig = {
     const projects = await getProjects({ host: options.host, apiKey: userKey } as any)
     spinner.succeed(prints.projectsLoaded)
 
-    const answers = await initPrompts(projects, promptHooks(options))
+    await initPrompts(projects, promptHooks(options))
 
     let installSpinner
-    try {
-      installSpinner = ora(prints.detectingFramework).start()
-      const { modules, name } = await getFramework()
 
-      if (name) {
-        installSpinner.succeed(`${name} app detected`)
-      } else {
-        installSpinner.succeed('Could not detect app')
+    installSpinner = ora(prints.detectingFramework).start()
+    const { modules, name } = await getFramework()
+
+    if (name) {
+      installSpinner.succeed(`${name} app detected`)
+      let schemaModules
+
+      try {
+        installSpinner = ora('Creating tipe folder').start()
+        schemaModules = await createTipeFolder()
+
+        installSpinner.succeed('Created folder "/tipe"')
+        console.log(`${greenCheck} Created schema file "/tipe/schema.js"`)
+      } catch (e) {
+        installSpinner.fail('Could not setup Tipe on your local project')
       }
 
-      installSpinner = ora('Creating tipe folder').start()
-      const schemaModules = await createTipeFolder()
-      installSpinner.succeed('Created folder "/tipe"')
-      console.log(`${greenCheck} Created schema file "/tipe/schema.js"`)
-
-      installSpinner = ora('Installing modules').start()
-      await install([...modules, ...schemaModules])
-      installSpinner.succeed('Modules installed')
-      console.log(prints.done('hello'))
-    } catch (e) {
-      installSpinner.fail('Could not setup Tipe on your local project')
-      logger.error(e.message)
+      try {
+        installSpinner = ora('Installing modules').start()
+        await installModules([...modules, ...schemaModules])
+        installSpinner.succeed('Modules installed')
+        console.log(prints.done(getFrameworkByName(name).finalSteps))
+      } catch (e) {
+        installSpinner.fail('Could not install modules')
+      }
+    } else {
+      installSpinner.warn(prints.unsupportedFrameworks(Object.keys(frameworks).map((f: any) => frameworks[f])))
     }
   },
 }

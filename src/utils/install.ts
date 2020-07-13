@@ -44,5 +44,3 @@ export const installModules = async (libs: string[]): Promise<any> => {
 
   return npmInstall(libs)
 }
-
-export const install = (modules: string[]) => installModules(modules)

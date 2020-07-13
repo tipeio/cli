@@ -94,14 +94,16 @@ export interface ProjectConfig {
   dashboard: Dashboard
 }
 
+export interface FrameworkConfig {
+  name: string
+  lib: 'gatsby' | 'react' | 'next'
+  finalSteps: string
+  supported: boolean
+  deps: string[]
+}
+
 export interface Frameworks {
-  gatsby: 'gatsby'
-  react: 'react'
-  angular: 'angular'
-  gridsome: 'gridsome'
-  vue: 'vue'
-  nuxt: 'nuxt'
-  next: 'next'
+  [key: string]: FrameworkConfig
 }
 
 export interface GetAuthToken {
