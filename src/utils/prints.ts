@@ -72,7 +72,6 @@ const done = (message: string) =>
   boxen(
     `🎉 ${chalk.white("You're all set")}  🎉 
 
-To setup Tipe Editor with your app:
 ${message}
 __________________________________________
 

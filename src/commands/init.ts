@@ -18,6 +18,7 @@ import {
   createEnv,
 } from '../utils/api'
 import { schemaTemplate } from '../utils/templates'
+import chalk from 'chalk'
 
 const promptHooks = (cliOptions: any): PromptHooks => ({
   async onCreateProject(options): Promise<Project> {
@@ -83,7 +84,7 @@ export const init: CommandConfig = {
     const projects = await getProjects({ host: options.host, apiKey: userKey } as any)
     spinner.succeed(prints.projectsLoaded)
 
-    await initPrompts(projects, promptHooks(options))
+    const answers = await initPrompts(projects, promptHooks(options))
 
     let installSpinner
 
@@ -108,7 +109,15 @@ export const init: CommandConfig = {
         installSpinner = ora('Installing modules').start()
         await installModules([...modules, ...schemaModules])
         installSpinner.succeed('Modules installed')
-        console.log(prints.done(getFrameworkByName(name).finalSteps))
+
+        const finalSteps = getFrameworkByName(name).finalSteps
+        const neededConfig = `Project: ${chalk.blue(answers.project.id)}
+  Environment: ${chalk.blue(answers.env.name)}`
+
+        console.log(
+          prints.done(`${finalSteps}
+  ${neededConfig}`),
+        )
       } catch (e) {
         installSpinner.fail('Could not install modules')
       }
