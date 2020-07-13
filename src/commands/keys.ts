@@ -12,8 +12,8 @@ export const keys: CommandConfig = {
   description: 'create or list apikeys',
   options: [
     ...globalOptions,
-    { option: '--list [list]', description: 'List All your API keys', type: prog.BOOLEAN },
-    { option: '--name [name]', description: 'Name your API Key', type: prog.STRING },
+    { option: '--list [list]', description: 'List All your API keys', config: { validator: program.BOOLEAN } },
+    { option: '--name [name]', description: 'Name your API Key', config: { validator: program.STRING } },
   ],
   async action({ options, logger }) {
     const userKey = config.getAuth()
@@ -51,7 +51,7 @@ export const keys: CommandConfig = {
 
     try {
       const spinner = ora(prints.creatingAPIKey).start()
-      const { key, name } = await createAPIKey({ host: options.host, apiKey: userKey, name: options.name })
+      const { key, name } = await createAPIKey({ host: options.host, apiKey: userKey, name: options.name } as any)
       spinner.succeed()
 
       const table = new Table({

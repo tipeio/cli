@@ -2,6 +2,7 @@ import path from 'path'
 import fs from 'fs-extra'
 import { Frameworks, Framework } from '../types'
 import { schemaTemplate } from './templates'
+import prints from './prints'
 
 const resolveToCWD = (...p: string[]): string => path.join(process.cwd(), ...p)
 const hasTipeFolder = async (folder: string) => {
@@ -27,21 +28,34 @@ export const createTipeFolder = async (folder = 'tipe'): Promise<any> => {
   return []
 }
 
-const frameworks: Frameworks = {
-  gatsby: 'gatsby',
-  next: 'next',
-  react: 'react',
-  angular: 'angular',
-  gridsome: 'gridsome',
-  vue: 'vue',
-  nuxt: 'nuxt',
+export const frameworks: Frameworks = {
+  gatsby: {
+    name: 'Gatsby JS',
+    lib: 'gatsby',
+    supported: true,
+    finalSteps: prints.gatsbyJsDone,
+    deps: ['@tipe/gatsby-source-plugin'],
+  },
+  next: {
+    name: 'Next JS',
+    lib: 'next',
+    supported: true,
+    finalSteps: prints.nextJsDone,
+    deps: ['@tipe/next-tipe-editor'],
+  },
+  react: {
+    name: 'React',
+    lib: 'react',
+    supported: true,
+    finalSteps: prints.reactDone,
+    deps: ['@tipe/react-editor'],
+  },
 }
 
-export const deps = {
-  react: ['@tipe/react-editor'],
-  next: ['@tipe/tipe-editor-plugin'],
-  gatsby: ['@tipe/gatsby-source-plugin'],
-}
+export const getFrameworkByName = (name: string) =>
+  Object.keys(frameworks)
+    .map(f => frameworks[f])
+    .find(f => f.name === name)
 
 const userPjson = (): any => require(resolveToCWD('package.json'))
 
@@ -54,18 +68,18 @@ export const detect = (lib: Framework): boolean => {
   }
 }
 
-export const isGatsby = (): boolean => detect(frameworks.gatsby)
-export const isNext = (): boolean => detect(frameworks.gatsby)
-export const isReact = (): boolean => detect(frameworks.react)
+export const isGatsby = (): boolean => detect(frameworks.gatsby.lib)
+export const isNext = (): boolean => detect(frameworks.next.lib)
+export const isReact = (): boolean => detect(frameworks.react.lib)
 export const isYarn = (): Promise<boolean> => fs.pathExists(resolveToCWD('yarn.lock'))
 
 export const getFramework = async () => {
   if (await isNext()) {
-    return { modules: deps.next, name: 'Next JS' }
+    return { modules: frameworks.next.deps, name: frameworks.next.name }
   } else if (await isGatsby()) {
-    return { modules: deps.gatsby, name: 'Gatsby JS' }
+    return { modules: frameworks.gatsby.deps, name: frameworks.gatsby.name }
   } else if (await isReact()) {
-    return { modules: deps.react, name: 'React' }
+    return { modules: frameworks.react.deps, name: frameworks.react.name }
   } else {
     return { modules: [], name: null }
   }

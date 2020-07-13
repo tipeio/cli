@@ -3,11 +3,22 @@ import gradient from 'gradient-string'
 import ls from 'log-symbols'
 import boxen from 'boxen'
 import chalk from 'chalk'
+import { FrameworkConfig } from '../types'
+import terminalLink from 'terminal-link'
 
 const header = gradient.vice(figlet.textSync('Tipe'))
 const creatingAPIKey = `...Creating API Key`
 const errorCreatingAPIKey = 'Could not create an API Key'
 
+const unsupportedFrameworks = (frameworks: FrameworkConfig[]): string => `Could not detect supported framework.
+
+  You can use Tipe to manage content for any app on any platform.
+  However, the Tipe Editor is only supported for:
+    ${frameworks.map(f => chalk.magenta(f.name) + '\n')}
+  You can also install and deploy a standalone Tipe Editor instance:
+    "yarn add ${chalk.green('@tipe/standalone-editor')}"
+    "npm install ${chalk.green('@tipe/standalone-editor')} --save"
+`
 const intro = `
 Thanks for using Tipe. You're about 3 mins away from complete content freedom!
 Lets's get started 🚀
@@ -59,20 +70,26 @@ const installed = (_: TemplateStringsArray, dashboard: any): string => `Tipe das
 
 const done = (message: string) =>
   boxen(
-    `${chalk.bold("You're all set")} 🎉!
+    `🎉 ${chalk.white("You're all set")}  🎉 
 
+To setup Tipe Editor with your app:
 ${message}
+__________________________________________
 
 Check out our docs for more:
 
-${chalk.green('Guides')}         ${chalk.underline('https://tipe.io.docs')}
-${chalk.green('API Reference')}  ${chalk.underline('https://tipe.io.docs')}
-${chalk.green('Customizing')}    ${chalk.underline('https://tipe.io.docs')}
+${terminalLink(chalk.green('Guides'), 'https://docs.tipe.io/guides')}
+${terminalLink(chalk.green('API Reference'), 'https://docs.tipe.io/reference')}
+${terminalLink(chalk.green('Customizing the editor'), 'https://docs.tipe.io/customizing')}
 `,
     { borderColor: 'magenta', padding: 1 },
   )
 
-const detectingFramework = `Detecting framework 👀`
+const detectingFramework = `...Detecting framework`
+
+const nextJsDone = `Configure the Tipe Editor in your "next.config.js" file.`
+const gatsbyJsDone = `Configure the Tipe Editor in your gatsby.config.js file`
+const reactDone = `Configure the Tipe Editor in your main router file.`
 
 export default {
   detectingFramework,
@@ -103,4 +120,8 @@ export default {
   signedout,
   errorCreatingAPIKey,
   creatingAPIKey,
+  unsupportedFrameworks,
+  reactDone,
+  gatsbyJsDone,
+  nextJsDone,
 }
