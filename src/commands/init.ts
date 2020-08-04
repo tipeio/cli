@@ -17,17 +17,19 @@ import {
   createFirstProject,
   createEnv,
 } from '../utils/api'
-import { schemaTemplate } from '../utils/templates'
 import chalk from 'chalk'
 
 const promptHooks = (cliOptions: any): PromptHooks => ({
   async onCreateProject(options): Promise<Project> {
     const apiKey = config.getAuth()
     const spinner = ora(prints.creatingFirstProject).start()
-    const project = await createFirstProject({ apiKey, name: options.name, host: cliOptions.host })
-
-    spinner.succeed(prints.createdFirstProject`${project.name} ${project.environments[0].name}`)
-    return project
+    try {
+      const project = await createFirstProject({ apiKey, name: options.name, host: cliOptions.host })
+      spinner.succeed(prints.createdFirstProject`${project.name} ${project.environments[0].name}`)
+      return project
+    } catch (e) {
+      spinner.fail('Oops, we could not create you a Project')
+    }
   },
   async onCreateEnv(options): Promise<Env> {
     const spinner = ora(prints.creatingEnv).start()
@@ -45,6 +47,7 @@ export const init: CommandConfig = {
   default: true,
   description: 'Create a new Tipe project',
   options: [...globalOptions],
+  alias: [''],
   async action({ options, logger }) {
     console.log(prints.header)
     console.log(prints.intro)
@@ -81,7 +84,15 @@ export const init: CommandConfig = {
     }
 
     const spinner = ora(prints.gettingProjects).start()
-    const projects = await getProjects({ host: options.host, apiKey: userKey } as any)
+    let projects
+
+    try {
+      projects = await getProjects({ host: options.host, apiKey: userKey } as any)
+    } catch (e) {
+      spinner.fail('Oops, could not get your projects.')
+      return
+    }
+
     spinner.succeed(prints.projectsLoaded)
 
     const answers = await initPrompts(projects, promptHooks(options))
@@ -102,7 +113,9 @@ export const init: CommandConfig = {
         installSpinner.succeed('Created folder "/tipe"')
         console.log(`${greenCheck} Created schema file "/tipe/schema.js"`)
       } catch (e) {
+        console.log(e)
         installSpinner.fail('Could not setup Tipe on your local project')
+        return
       }
 
       try {
@@ -119,7 +132,9 @@ export const init: CommandConfig = {
   ${neededConfig}`),
         )
       } catch (e) {
+        console.log(e)
         installSpinner.fail('Could not install modules')
+        return
       }
     } else {
       installSpinner.warn(prints.unsupportedFrameworks(Object.keys(frameworks).map((f: any) => frameworks[f])))

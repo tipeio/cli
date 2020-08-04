@@ -4,7 +4,6 @@ import { createCommands } from './utils/createCommand'
 import commands from './commands'
 
 program.version(pjson.version)
+createCommands(program, commands)
 
-const cli = createCommands(program, commands)
-
-cli.run(process.argv.slice(2))
+program.run(process.argv.slice(2))

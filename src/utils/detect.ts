@@ -1,31 +1,38 @@
 import path from 'path'
 import fs from 'fs-extra'
 import { Frameworks, Framework } from '../types'
-import { schemaTemplate } from './templates'
+import { schemaTemplate, fieldsTemplate } from './templates'
 import prints from './prints'
 
 const resolveToCWD = (...p: string[]): string => path.join(process.cwd(), ...p)
-const hasTipeFolder = async (folder: string) => {
-  const dir = await fs.pathExists(resolveToCWD(folder))
-  const schema = await fs.pathExists(resolveToCWD(folder, 'schema.js'))
-
-  return { dir, schema }
-}
+const hasTipeFolder = (folder: string) => fs.pathExists(resolveToCWD(folder))
+const hasSchema = (folder: string) => fs.pathExists(resolveToCWD(folder, 'schema.js'))
+const hasFieldsFolder = (folder: string) => fs.pathExists(resolveToCWD(folder, 'fields'))
+const hasFields = (folder: string) => fs.pathExists(resolveToCWD(folder, 'fields', 'index.js'))
 
 export const createTipeFolder = async (folder = 'tipe'): Promise<any> => {
-  const { dir, schema } = await hasTipeFolder(folder)
+  const hasFolder = await hasTipeFolder(folder)
+  const deps = []
 
-  if (!dir) {
+  if (!hasFolder) {
     await fs.mkdir(resolveToCWD(folder))
-    await fs.writeFile(resolveToCWD(folder, 'schema.js'), schemaTemplate.string)
-
-    return schemaTemplate.deps
-  } else if (!schema) {
-    await fs.writeFile(resolveToCWD(folder, 'schema.js'), schemaTemplate.string)
-    return schemaTemplate.deps
   }
 
-  return []
+  if (!(await hasSchema(folder))) {
+    await fs.writeFile(resolveToCWD(folder, 'schema.js'), schemaTemplate.string)
+    deps.push(...schemaTemplate.deps)
+  }
+
+  if (!(await hasFieldsFolder(folder))) {
+    await fs.mkdir(resolveToCWD(folder, 'fields'))
+  }
+
+  if (!(await hasFields(folder))) {
+    await fs.writeFile(resolveToCWD(folder, 'fields', 'index.js'), fieldsTemplate.string)
+    deps.push(...fieldsTemplate.deps)
+  }
+
+  return deps
 }
 
 export const frameworks: Frameworks = {
