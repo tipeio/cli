@@ -20,12 +20,11 @@ const unsupportedFrameworks = (frameworks: FrameworkConfig[]): string => `Could 
     "npm install ${chalk.green('@tipe/standalone-editor')} --save"
 `
 const intro = `
-Thanks for using Tipe. You're about 3 mins away from complete content freedom!
-Lets's get started 🚀
+Thanks for using Tipe. Let's quickly get you started, this won't take long 🚀
 `
 
-const foundAuth = `${ls.success} Account found.`
-const alreadyAuth = `${ls.info} Account found. You're already signed in. To signout run:
+const foundAuth = `${ls.success} Authenticated with Tipe.`
+const alreadyAuth = `${ls.info} Authenticated with Tipe. You're already signed in. To signout run:
 tipe signout
 `
 const signedout = `${ls.success} Successfully signed out`

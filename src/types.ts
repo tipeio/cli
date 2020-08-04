@@ -49,6 +49,7 @@ export interface CommandConfig {
   action: Action
   arguments?: CommandArgument[]
   options?: CommandOption[]
+  alias?: string[]
 }
 
 export interface Env {
@@ -91,7 +92,6 @@ export interface PromptConfig {
 export interface ProjectConfig {
   project: Project
   env: Env
-  dashboard: Dashboard
 }
 
 export interface FrameworkConfig {

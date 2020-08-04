@@ -1,6 +1,10 @@
 import Conf from 'conf'
+import pjson from '../../package.json'
 
-const config = new Conf()
+const config = new Conf({
+  projectName: 'tipe-cli',
+  projectVersion: pjson.version,
+})
 
 export default {
   getAuth(): string {

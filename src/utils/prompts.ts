@@ -1,6 +1,5 @@
 import prompts from 'prompts'
-import { Project, Env, PromptHooks, ProjectConfig, Dashboard } from '../types'
-import { isGatsby } from '../utils/detect'
+import { Project, Env, PromptHooks, ProjectConfig } from '../types'
 import chalk from 'chalk'
 
 export const initPrompts = async (projects: Project[], hooks: PromptHooks): Promise<ProjectConfig> => {
@@ -55,7 +54,7 @@ export const initPrompts = async (projects: Project[], hooks: PromptHooks): Prom
       const { envPrivate } = await prompts({
         type: 'toggle',
         name: 'envPrivate',
-        message: `Make "${envName}" private? (Will need an API to read. You can change this whenever)`,
+        message: `Make "${envName}" private? (Will need an API to get content)`,
         initial: false,
         inactive: 'no',
         active: 'yes',
@@ -67,22 +66,5 @@ export const initPrompts = async (projects: Project[], hooks: PromptHooks): Prom
     }
   }
 
-  let dashboard: Dashboard
-  if (isGatsby()) {
-    const { dash } = await prompts({
-      type: 'select',
-      name: 'dash',
-      message: 'Gatsby project detected. Install the Tipe dashboard as a Gatsby theme?',
-      choices: [
-        { title: 'Yes (Recommended)', value: 'gatsby-theme' },
-        { title: 'No - install as a standalone app', value: 'standalone' },
-      ],
-    })
-
-    dashboard = dash
-  } else {
-    dashboard = 'standalone'
-  }
-
-  return { project, env, dashboard }
+  return { project, env }
 }

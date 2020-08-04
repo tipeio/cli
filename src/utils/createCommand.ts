@@ -10,10 +10,6 @@ export const createCommand = (prog: Program, config: CommandConfig): Command => 
     })
   }
 
-  if (config.default) {
-    command.default()
-  }
-
   command.action(config.action)
   return command
 }
