@@ -92,6 +92,7 @@ export interface PromptConfig {
 export interface ProjectConfig {
   project: Project
   env: Env
+  writeEnv: boolean
 }
 
 export interface FrameworkConfig {

@@ -66,5 +66,12 @@ export const initPrompts = async (projects: Project[], hooks: PromptHooks): Prom
     }
   }
 
-  return { project, env }
+  const { writeEnv } = await prompts({
+    type: 'confirm',
+    name: 'writeEnv',
+    message: 'Add tipe env variables to your .env file?',
+    initial: true,
+  })
+
+  return { project, env, writeEnv }
 }

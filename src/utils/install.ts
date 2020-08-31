@@ -1,12 +1,23 @@
 import spawn from 'cross-spawn'
 import { isYarn } from './detect'
 import download from 'download-git-repo'
+import fs from 'fs'
+import path from 'path'
 
 const spawnStdio: any[] = ['pipe', 'pipe', 'pipe']
+const addDeps = libs => {
+  const psjonPath = path.join(process.cwd(), 'package.json')
+  const pjson = JSON.parse(fs.readFileSync(psjonPath, { encoding: 'utf-8' }).toString())
+
+  libs.forEach(lib => (pjson.dependencies[lib] = '*'))
+
+  fs.writeFileSync(psjonPath, JSON.stringify(pjson, null, 2))
+}
 
 export const yarnInstall = (libs: string[]): Promise<any> =>
   new Promise((resolve, reject) => {
-    const child = spawn('yarn', ['add', ...libs, '--non-interactive', '--force'], { stdio: spawnStdio })
+    addDeps(libs)
+    const child = spawn('yarn', { stdio: spawnStdio })
 
     child.on('close', (code: number) => {
       if (code !== 0) {
@@ -19,7 +30,8 @@ export const yarnInstall = (libs: string[]): Promise<any> =>
 
 export const npmInstall = (libs: string[]): Promise<any> =>
   new Promise((resolve, reject) => {
-    const child = spawn('npm', ['install', ...libs, '-S'], { stdio: spawnStdio })
+    addDeps(libs)
+    const child = spawn('npm', { stdio: spawnStdio })
 
     child.on('close', (code: number) => {
       if (code !== 0) {
@@ -40,7 +52,8 @@ export const repoInstall = (repo: string, where: string): Promise<any> =>
 
 export const installModules = async (libs: string[]): Promise<any> => {
   const yarn = await isYarn()
-  if (yarn) return yarnInstall(libs)
+  // TODO: Hack
+  if (true) return yarnInstall(libs)
 
   return npmInstall(libs)
 }
