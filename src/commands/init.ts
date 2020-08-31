@@ -6,8 +6,19 @@ import { installModules } from '../utils/install'
 import { initPrompts } from '../utils/prompts'
 import { globalOptions } from '../utils/options'
 import { CommandConfig, PromptHooks, Env, Project } from '../types'
-import { getFramework, createTipeFolder, frameworks, getFrameworkByName } from '../utils/detect'
-import { greenCheck } from '../utils/symbols'
+import {
+  getFramework,
+  createTipeFolder,
+  frameworks,
+  createPages,
+  writeEnvs,
+  createPreviewRoutes,
+} from '../utils/detect'
+import { program } from '@caporal/core'
+import { constantCase } from 'change-case'
+import { v4 } from 'uuid'
+
+// import { greenCheck } from '../utils/symbols'
 import {
   checkAPIKey,
   getProjects,
@@ -17,14 +28,29 @@ import {
   createFirstProject,
   createEnv,
 } from '../utils/api'
-import chalk from 'chalk'
+
+const defaultOptions: any = {
+  environment: 'Production',
+  contentHost: 'https://content.tipe.io',
+  adminHost: 'https://api.admin.tipe.io',
+  assetHost: 'https://upload.tipe.io',
+  mountPath: 'cms',
+  previews: true,
+  previewSecret: v4(),
+}
+
+const excludeEnvIfDefault: any = {
+  contentHost: true,
+  adminHost: true,
+  assetHost: true,
+}
 
 const promptHooks = (cliOptions: any): PromptHooks => ({
   async onCreateProject(options): Promise<Project> {
     const apiKey = config.getAuth()
     const spinner = ora(prints.creatingFirstProject).start()
     try {
-      const project = await createFirstProject({ apiKey, name: options.name, host: cliOptions.host })
+      const project = await createFirstProject({ apiKey, name: options.name, host: cliOptions.adminHost })
       spinner.succeed(prints.createdFirstProject`${project.name} ${project.environments[0].name}`)
       return project
     } catch (e) {
@@ -35,7 +61,7 @@ const promptHooks = (cliOptions: any): PromptHooks => ({
     const spinner = ora(prints.creatingEnv).start()
     const apiKey = config.getAuth()
 
-    const environment = await createEnv({ apiKey, host: cliOptions.host, environment: options })
+    const environment = await createEnv({ apiKey, host: cliOptions.adminHost, environment: options })
 
     spinner.succeed(prints.createdEnv)
     return environment
@@ -46,7 +72,19 @@ export const init: CommandConfig = {
   command: 'init',
   default: true,
   description: 'Create a new Tipe project',
-  options: [...globalOptions],
+  options: [
+    ...globalOptions,
+    {
+      option: '--contentHost [contentHost]',
+      description: 'content api host to use',
+      config: { validator: program.STRING },
+    },
+    {
+      option: '--assetHost [assetHost]',
+      description: 'content api host to use',
+      config: { validator: program.STRING },
+    },
+  ],
   alias: [''],
   async action({ options, logger }) {
     console.log(prints.header)
@@ -56,21 +94,21 @@ export const init: CommandConfig = {
     let validKey = false
 
     if (userKey) {
-      validKey = await checkAPIKey({ host: options.host, apiKey: userKey } as any)
+      validKey = await checkAPIKey({ host: options.adminHost, apiKey: userKey } as any)
     }
 
     if (!userKey || !validKey) {
       const spinner = ora(prints.openingAuth).start()
-      const [error, token] = await asyncWrap(getAuthToken({ host: options.host } as any))
+      const [error, token] = await asyncWrap(getAuthToken({ host: options.adminHost } as any))
 
       if (error) {
         return spinner.fail(prints.authError)
       }
 
-      await openAuthWindow({ token, host: options.host } as any)
+      await openAuthWindow({ token, host: options.adminHost } as any)
 
       spinner.text = prints.waitingForAuth
-      const [userError, user] = await asyncWrap(authenticate({ host: options.host, token } as any))
+      const [userError, user] = await asyncWrap(authenticate({ host: options.adminHost, token } as any))
 
       if (userError) {
         return spinner.fail(prints.authError)
@@ -87,7 +125,7 @@ export const init: CommandConfig = {
     let projects
 
     try {
-      projects = await getProjects({ host: options.host, apiKey: userKey } as any)
+      projects = await getProjects({ host: options.adminHost, apiKey: userKey } as any)
     } catch (e) {
       spinner.fail('Oops, could not get your projects.')
       return
@@ -96,10 +134,27 @@ export const init: CommandConfig = {
     spinner.succeed(prints.projectsLoaded)
 
     const answers = await initPrompts(projects, promptHooks(options))
+    const envConfig: any = {
+      ...defaultOptions,
+      ...options,
+      projectId: answers.project.id,
+      environment: answers.env.name,
+    }
+
+    const envs = Object.keys(envConfig)
+      .filter(env => {
+        const value = envConfig[env]
+        return !(excludeEnvIfDefault[env] && value === defaultOptions[env])
+      })
+      .map(env => ({
+        name: constantCase(`TIPE_${env}`).toUpperCase(),
+        value: envConfig[env],
+      }))
 
     let installSpinner
-
+    let envError
     installSpinner = ora(prints.detectingFramework).start()
+
     const { modules, name } = await getFramework()
 
     if (name) {
@@ -107,30 +162,38 @@ export const init: CommandConfig = {
       let schemaModules
 
       try {
-        installSpinner = ora('Creating tipe folder').start()
-        schemaModules = await createTipeFolder()
+        installSpinner = ora(`Setting up tipe for ${name}`).start()
 
-        installSpinner.succeed('Created folder "/tipe"')
-        console.log(`${greenCheck} Created schema file "/tipe/schema.js"`)
+        if (answers.writeEnv) {
+          const result = await writeEnvs(envs)
+          envError = result.error
+        }
+
+        await createPages(envConfig)
+        await createPreviewRoutes()
+        schemaModules = await createTipeFolder()
+        installSpinner.succeed(`Tipe setup with ${name}`)
       } catch (e) {
         console.log(e)
-        installSpinner.fail('Could not setup Tipe on your local project')
+        installSpinner.fail('Could not setup tipe integration')
         return
       }
 
       try {
         installSpinner = ora('Installing modules').start()
         await installModules([...modules, ...schemaModules])
+
         installSpinner.succeed('Modules installed')
-
-        const finalSteps = getFrameworkByName(name).finalSteps
-        const neededConfig = `Project: ${chalk.blue(answers.project.id)}
-  Environment: ${chalk.blue(answers.env.name)}`
-
-        console.log(
-          prints.done(`${finalSteps}
-  ${neededConfig}`),
-        )
+        if (!answers.writeEnv || envError) {
+          console.log(
+            prints.done(`
+  Copy and paste these env vars into
+  your ".env.local" or ".env" file
+  
+  ${envs.map(env => `\n${env.name}=${env.value}`)}
+  `),
+          )
+        }
       } catch (e) {
         console.log(e)
         installSpinner.fail('Could not install modules')

@@ -1,14 +1,57 @@
 import path from 'path'
 import fs from 'fs-extra'
 import { Frameworks, Framework } from '../types'
-import { schemaTemplate, fieldsTemplate } from './templates'
+import { schemaTemplate, fieldsTemplate, pageTemplate, previewRouteTemplate } from './templates'
 import prints from './prints'
+
+const Pages = {
+  IndexPage: 'index',
+  DocsPage: 'docs',
+  SigninPage: 'signin',
+  EditorPage: 'editor',
+  TypePage: 'types',
+  MediaPage: 'assets',
+}
 
 const resolveToCWD = (...p: string[]): string => path.join(process.cwd(), ...p)
 const hasTipeFolder = (folder: string) => fs.pathExists(resolveToCWD(folder))
 const hasSchema = (folder: string) => fs.pathExists(resolveToCWD(folder, 'schema.js'))
 const hasFieldsFolder = (folder: string) => fs.pathExists(resolveToCWD(folder, 'fields'))
 const hasFields = (folder: string) => fs.pathExists(resolveToCWD(folder, 'fields', 'index.js'))
+const normalizeUrl = (url: string) => url.replace(/^\/|\/$/g, '')
+
+export const createPages = async options => {
+  const schemaPath = '../../tipe/schema'
+  const customFieldsPath = '../../tipe/fields'
+  const mountPath = normalizeUrl(options.mountPath)
+
+  try {
+    await fs.mkdir(resolveToCWD('/pages', mountPath))
+  } catch (e) {}
+
+  const pageOptions = {
+    ...options,
+    customFieldsPath,
+    schemaPath,
+    mountPath,
+  }
+
+  await Promise.all(
+    Object.entries(Pages).map(([editorPage, fileName]) => {
+      const pathToFile = resolveToCWD('/pages', mountPath, `${fileName}.js`)
+      const file = pageTemplate(editorPage, pageOptions)
+
+      return fs.writeFile(pathToFile, file)
+    }),
+  )
+}
+
+export const createPreviewRoutes = async (): Promise<any> => {
+  try {
+    await fs.mkdir(resolveToCWD('/pages/api'))
+  } catch (e) {}
+  return fs.writeFile(resolveToCWD('/pages/api', 'preview.js'), previewRouteTemplate())
+}
 
 export const createTipeFolder = async (folder = 'tipe'): Promise<any> => {
   const hasFolder = await hasTipeFolder(folder)
@@ -48,7 +91,7 @@ export const frameworks: Frameworks = {
     lib: 'next',
     supported: true,
     finalSteps: prints.nextJsDone,
-    deps: ['@tipe/next-tipe-editor'],
+    deps: ['@tipe/next', '@tipe/react-editor'],
   },
   react: {
     name: 'React',
@@ -89,5 +132,25 @@ export const getFramework = async () => {
     return { modules: frameworks.react.deps, name: frameworks.react.name }
   } else {
     return { modules: [], name: null }
+  }
+}
+
+export const writeEnvs = async (envs: { name: string; value: any }[]): Promise<{ error: boolean }> => {
+  const envString = '\n' + envs.map(env => `${env.name}=${env.value}`).join('\n')
+
+  try {
+    await fs.appendFile(path.join(process.cwd(), '.env.local'), envString)
+    return { error: false }
+  } catch (e) {
+    try {
+      await fs.appendFile(path.join(process.cwd(), '.env'), envString)
+      return {
+        error: false,
+      }
+    } catch (e) {
+      return {
+        error: true,
+      }
+    }
   }
 }
