@@ -37,7 +37,7 @@ const noProjects = `You don't have any projects. To create one run:
 tipe init
 `
 const authenticated = (_: TemplateStringsArray, email: any): string =>
-  `Authentication for ${email} sucess 💯. Saving for next time`
+  `Authentication for ${email} success 💯. Saving for next time`
 
 const creatingFirstProject = '... Creating your first Project and Environment'
 const createdFirstProject = (_: TemplateStringsArray, project: string, environment: string): string =>
