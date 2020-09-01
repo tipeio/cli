@@ -1,6 +1,6 @@
 {
   "name": "tipe-cli",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Tipe CLI to manage projects and get started",
   "main": "index.js",
   "bin": {
