@@ -52,8 +52,8 @@ export const repoInstall = (repo: string, where: string): Promise<any> =>
 
 export const installModules = async (libs: string[]): Promise<any> => {
   const yarn = await isYarn()
-  // TODO: Hack
-  if (true) return yarnInstall(libs)
+  // TODO: create prompt
+  if (yarn) return yarnInstall(libs)
 
   return npmInstall(libs)
 }
