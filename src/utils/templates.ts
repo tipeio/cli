@@ -119,7 +119,7 @@ export default async (req, res) => {
     return res.status(401).json({ message: 'Invalid token' })
   }
 
-  if( req.query.previewSecret !== process.env.TIPE_PREVIEW_SECRET) {
+  if( req.query.secret !== process.env.TIPE_PREVIEW_SECRET) {
     return res.status(401).json({ message: 'Invalid secret' })
   }
 
