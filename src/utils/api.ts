@@ -161,7 +161,7 @@ export const retrieveAPIKeys: RetrieveAPIKeys = async (options): Promise<{ apiKe
     host: getURL(options.host),
     apiKey: options.apiKey,
     project: options.project,
-    method: 'post',
+    method: 'get',
   })
 
   return result

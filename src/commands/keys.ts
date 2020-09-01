@@ -37,7 +37,7 @@ export const keys: CommandConfig = {
         head: ['Name', 'Key'],
       })
 
-      table.push(...apiKeys.map(key => [key.project, key.value]))
+      table.push(...apiKeys.map(key => [key.name, key.value]))
       console.log(table.toString())
       return
     }
