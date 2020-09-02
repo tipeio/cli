@@ -147,7 +147,7 @@ export const init: CommandConfig = {
         return !(excludeEnvIfDefault[env] && value === defaultOptions[env])
       })
       .map(env => {
-        if (env === 'PREVIEW_SECRET') {
+        if (env === 'previewSecret') {
           return {
             name: constantCase(`NEXT_PUBLIC_TIPE_${env}`).toUpperCase(),
             value: envConfig[env],
