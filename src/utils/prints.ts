@@ -8,7 +8,9 @@ import terminalLink from 'terminal-link'
 
 const header = gradient.vice(figlet.textSync('Tipe'))
 const creatingAPIKey = `...Creating API Key`
+const fetchingAPIKeys = `...Fetching API Keys`
 const errorCreatingAPIKey = 'Could not create an API Key'
+const errorFetchingAPIKeys = 'Could not fetch API Keys'
 
 const unsupportedFrameworks = (frameworks: FrameworkConfig[]): string => `Could not detect supported framework.
 
@@ -118,6 +120,8 @@ export default {
   signedout,
   errorCreatingAPIKey,
   creatingAPIKey,
+  fetchingAPIKeys,
+  errorFetchingAPIKeys,
   unsupportedFrameworks,
   reactDone,
   gatsbyJsDone,
