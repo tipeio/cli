@@ -35,14 +35,13 @@ export const keys: CommandConfig = {
           project: options.project,
           apiKey: userKey,
         } as any)
-        console.log('action -> apiKeys', apiKeys)
         spinner.succeed()
+
         const table = new Table({
           head: ['Name', 'Key'],
           colWidths: [30, 50],
         })
-        table.push(apiKeys.map(key => [key.name, key.value]))
-        console.log(table.toString())
+        table.push(...apiKeys.map((key: any) => [key.name, key.key]))
         return
       } catch (error) {
         logger.error(prints.errorFetchingAPIKeys)
