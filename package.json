@@ -1,5 +1,5 @@
 {
-  "name": "tipe-cli",
+  "name": "@tipe/cli",
   "version": "2.0.1",
   "description": "Tipe CLI to manage projects and get started",
   "main": "index.js",
