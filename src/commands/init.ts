@@ -146,10 +146,18 @@ export const init: CommandConfig = {
         const value = envConfig[env]
         return !(excludeEnvIfDefault[env] && value === defaultOptions[env])
       })
-      .map(env => ({
-        name: constantCase(`TIPE_${env}`).toUpperCase(),
-        value: envConfig[env],
-      }))
+      .map(env => {
+        if (env === 'PREVIEW_SECRET') {
+          return {
+            name: constantCase(`NEXT_PUBLIC_TIPE_${env}`).toUpperCase(),
+            value: envConfig[env],
+          }
+        }
+        return {
+          name: constantCase(`TIPE_${env}`).toUpperCase(),
+          value: envConfig[env],
+        }
+      })
 
     let installSpinner
     let envError
