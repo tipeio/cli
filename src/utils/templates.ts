@@ -70,7 +70,7 @@ export const pageTemplate = (page: string, options): string => {
     customFields,
     mountPath: '${options.mountPath}',
     project: '${options.projectId}',
-    previewSecret: process.env.TIPE_PREVIEW_SECRET,
+    previewSecret: process.env.NEXT_PUBLIC_TIPE_PREVIEW_SECRET,
     contentHost: client.__config.contentHost,
     assetHost: client.__config.assetHost,
     adminHost: client.__config.adminHost,
@@ -119,7 +119,7 @@ export default async (req, res) => {
     return res.status(401).json({ message: 'Invalid token' })
   }
 
-  if( req.query.secret !== process.env.TIPE_PREVIEW_SECRET) {
+  if( req.query.secret !== process.env.NEXT_PUBLIC_TIPE_PREVIEW_SECRET) {
     return res.status(401).json({ message: 'Invalid secret' })
   }
 
@@ -130,7 +130,7 @@ export default async (req, res) => {
   }
 
   res.setPreviewData({}, {
-    maxAge: 1,
+    maxAge: 30,
   })
   
   res.writeHead(307, {
