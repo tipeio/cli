@@ -155,8 +155,8 @@ export const createAPIKey = async (options: {
   return result
 }
 
-export const retrieveAPIKeys: RetrieveAPIKeys = async (options): Promise<{ apiKeys: ApiKey[] }> => {
-  const result: { apiKeys: ApiKey[] } = await api<{ apiKeys: ApiKey[] }>({
+export const retrieveAPIKeys: RetrieveAPIKeys = async (options): Promise<ApiKey[]> => {
+  const result: ApiKey[] = await api<ApiKey[]>({
     path: 'api/cli/apikeys',
     host: getURL(options.host),
     apiKey: options.apiKey,

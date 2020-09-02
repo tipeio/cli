@@ -142,9 +142,7 @@ export interface ApiKey {
 }
 
 export interface RetrieveAPIKeys {
-  (options: { host: string; apiKey: string; project: string }): Promise<{
-    apiKeys: ApiKey[]
-  }>
+  (options: { host: string; apiKey: string; project: string }): Promise<ApiKey[]>
 }
 
 export interface CreateEnv {
