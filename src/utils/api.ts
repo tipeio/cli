@@ -99,7 +99,7 @@ export const createFirstProject: CreateFirstProject = async options => {
 
 export const createEnv: CreateEnv = async options => {
   const result = await api<Env>({
-    path: 'api/projects/createEnvironment',
+    path: `api/${options.environment.project}/createEnvironment`,
     host: getURL(options.host),
     method: 'post',
     apiKey: options.apiKey,
