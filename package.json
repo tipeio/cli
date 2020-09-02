@@ -1,8 +1,11 @@
 {
   "name": "tipe-cli",
-  "version": "0.0.1",
+  "version": "2.0.0",
   "description": "Tipe CLI to manage projects and get started",
   "main": "index.js",
+  "publishConfig": {
+    "access": "restricted"
+  },
   "bin": {
     "tipe": "./bin/tipe"
   },
