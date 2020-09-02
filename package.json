@@ -16,6 +16,7 @@
   ],
   "dependencies": {
     "@caporal/core": "^2.0.2",
+    "boxen": "^4.2.0",
     "case": "^1.6.3",
     "chalk": "^3.0.0",
     "change-case": "^4.1.1",
