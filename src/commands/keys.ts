@@ -28,18 +28,26 @@ export const keys: CommandConfig = {
     }
 
     if (options.list) {
-      const apiKeys = await retrieveAPIKeys({
-        host: options.host,
-        project: options.project,
-        apiKey: userKey,
-      } as any)
-      const table = new Table({
-        head: ['Name', 'Key'],
-      })
-
-      table.push(...apiKeys.map(key => [key.name, key.value]))
-      console.log(table.toString())
-      return
+      try {
+        const spinner = ora(prints.fetchingAPIKeys).start()
+        const apiKeys = await retrieveAPIKeys({
+          host: options.host,
+          project: options.project,
+          apiKey: userKey,
+        } as any)
+        console.log('action -> apiKeys', apiKeys)
+        spinner.succeed()
+        const table = new Table({
+          head: ['Name', 'Key'],
+          colWidths: [30, 50],
+        })
+        table.push(apiKeys.map(key => [key.name, key.value]))
+        console.log(table.toString())
+        return
+      } catch (error) {
+        logger.error(prints.errorFetchingAPIKeys)
+        return
+      }
     }
 
     if (!options.name) {
@@ -56,6 +64,7 @@ export const keys: CommandConfig = {
 
       const table = new Table({
         head: ['Name', 'Key'],
+        colWidths: [30, 50],
       })
 
       table.push([name, key])
