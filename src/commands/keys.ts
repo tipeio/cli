@@ -28,7 +28,7 @@ export const keys: CommandConfig = {
     }
 
     if (options.list) {
-      const { apiKeys } = await retrieveAPIKeys({
+      const apiKeys = await retrieveAPIKeys({
         host: options.host,
         project: options.project,
         apiKey: userKey,
