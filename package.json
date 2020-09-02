@@ -11,7 +11,8 @@
   },
   "files": [
     "bin/**/*",
-    "src/**/*"
+    "src/**/*",
+    "dist/**/*"
   ],
   "dependencies": {
     "@caporal/core": "^2.0.2",
