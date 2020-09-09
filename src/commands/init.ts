@@ -35,6 +35,7 @@ const defaultOptions: any = {
   adminHost: 'https://api.admin.tipe.io',
   assetHost: 'https://upload.tipe.io',
   mountPath: 'cms',
+  initPath: '/pages',
   previews: true,
   previewSecret: v4(),
 }
@@ -75,21 +76,15 @@ export const init: CommandConfig = {
   options: [
     ...globalOptions,
     {
-      option: '--contentHost [contentHost]',
-      description: 'content api host to use',
-      config: { validator: program.STRING },
-    },
-    {
-      option: '--assetHost [assetHost]',
-      description: 'content api host to use',
+      option: '--initPath [folder]',
+      description: 'relative path to generate Tipe files',
       config: { validator: program.STRING },
     },
   ],
   alias: [''],
-  async action({ options, logger }) {
+  async action({ options }) {
     console.log(prints.header)
     console.log(prints.intro)
-
     let userKey = config.getAuth()
     let validKey = false
 
@@ -178,7 +173,7 @@ export const init: CommandConfig = {
         }
 
         await createPages(envConfig)
-        await createPreviewRoutes()
+        await createPreviewRoutes(options.initPath)
         schemaModules = await createTipeFolder()
         installSpinner.succeed(`Tipe setup with ${name}`)
       } catch (e) {
