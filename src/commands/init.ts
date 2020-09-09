@@ -173,7 +173,7 @@ export const init: CommandConfig = {
         }
 
         await createPages(envConfig)
-        await createPreviewRoutes(options.initPath)
+        await createPreviewRoutes(envConfig.initPath)
         schemaModules = await createTipeFolder()
         installSpinner.succeed(`Tipe setup with ${name}`)
       } catch (e) {
