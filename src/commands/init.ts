@@ -35,7 +35,6 @@ const defaultOptions: any = {
   adminHost: 'https://api.admin.tipe.io',
   assetHost: 'https://upload.tipe.io',
   mountPath: 'cms',
-  initPath: '/pages',
   previews: true,
   previewSecret: v4(),
 }
@@ -73,14 +72,7 @@ export const init: CommandConfig = {
   command: 'init',
   default: true,
   description: 'Create a new Tipe project',
-  options: [
-    ...globalOptions,
-    {
-      option: '--initPath [folder]',
-      description: 'relative path to generate Tipe files',
-      config: { validator: program.STRING },
-    },
-  ],
+  options: [...globalOptions],
   alias: [''],
   async action({ options }) {
     console.log(prints.header)
@@ -173,7 +165,7 @@ export const init: CommandConfig = {
         }
 
         await createPages(envConfig)
-        await createPreviewRoutes(envConfig.initPath)
+        await createPreviewRoutes()
         schemaModules = await createTipeFolder()
         installSpinner.succeed(`Tipe setup with ${name}`)
       } catch (e) {
