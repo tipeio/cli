@@ -24,10 +24,15 @@ export const createPages = async (options: any): Promise<void> => {
   const schemaPath = '../../tipe/schema'
   const customFieldsPath = '../../tipe/fields'
   const mountPath = normalizeUrl(options.mountPath)
-
+  let initPath = '/pages'
   try {
-    await fs.mkdir(resolveToCWD(options.initPath, mountPath))
-  } catch (e) {}
+    await fs.mkdir(resolveToCWD('/pages', mountPath))
+  } catch (e) {
+    try {
+      await fs.mkdir(resolveToCWD('/src/pages', mountPath))
+      initPath = '/src/pages'
+    } catch (e) {}
+  }
 
   const pageOptions = {
     ...options,
@@ -38,7 +43,7 @@ export const createPages = async (options: any): Promise<void> => {
 
   await Promise.all(
     Object.entries(Pages).map(([editorPage, fileName]) => {
-      const pathToFile = resolveToCWD(options.initPath, mountPath, `${fileName}.js`)
+      const pathToFile = resolveToCWD(initPath, mountPath, `${fileName}.js`)
       const file = pageTemplate(editorPage, pageOptions)
 
       return fs.writeFile(pathToFile, file)
@@ -46,12 +51,17 @@ export const createPages = async (options: any): Promise<void> => {
   )
 }
 
-export const createPreviewRoutes = async (path: string): Promise<any> => {
-  const previewPath = path[path.length - 1] === '/' ? path + 'api' : path + '/api'
+export const createPreviewRoutes = async (): Promise<any> => {
+  let initPreviewPath = '/pages/api'
   try {
-    await fs.mkdir(resolveToCWD(previewPath))
-  } catch (e) {}
-  return fs.writeFile(resolveToCWD(previewPath, 'preview.js'), previewRouteTemplate())
+    await fs.mkdir(resolveToCWD('/pages/api'))
+  } catch (e) {
+    try {
+      await fs.mkdir(resolveToCWD('/src/pages/api'))
+      initPreviewPath = '/src/pages/api'
+    } catch (e) {}
+  }
+  return fs.writeFile(resolveToCWD(initPreviewPath, 'preview.js'), previewRouteTemplate())
 }
 
 export const createTipeFolder = async (folder = 'tipe'): Promise<any> => {
