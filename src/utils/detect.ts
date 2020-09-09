@@ -14,19 +14,19 @@ const Pages = {
 }
 
 const resolveToCWD = (...p: string[]): string => path.join(process.cwd(), ...p)
-const hasTipeFolder = (folder: string) => fs.pathExists(resolveToCWD(folder))
-const hasSchema = (folder: string) => fs.pathExists(resolveToCWD(folder, 'schema.js'))
-const hasFieldsFolder = (folder: string) => fs.pathExists(resolveToCWD(folder, 'fields'))
-const hasFields = (folder: string) => fs.pathExists(resolveToCWD(folder, 'fields', 'index.js'))
-const normalizeUrl = (url: string) => url.replace(/^\/|\/$/g, '')
+const hasTipeFolder = (folder: string): Promise<boolean> => fs.pathExists(resolveToCWD(folder))
+const hasSchema = (folder: string): Promise<boolean> => fs.pathExists(resolveToCWD(folder, 'schema.js'))
+const hasFieldsFolder = (folder: string): Promise<boolean> => fs.pathExists(resolveToCWD(folder, 'fields'))
+const hasFields = (folder: string): Promise<boolean> => fs.pathExists(resolveToCWD(folder, 'fields', 'index.js'))
+const normalizeUrl = (url: string): string => url.replace(/^\/|\/$/g, '')
 
-export const createPages = async options => {
+export const createPages = async (options: any): Promise<void> => {
   const schemaPath = '../../tipe/schema'
   const customFieldsPath = '../../tipe/fields'
   const mountPath = normalizeUrl(options.mountPath)
 
   try {
-    await fs.mkdir(resolveToCWD('/pages', mountPath))
+    await fs.mkdir(resolveToCWD(options.initPath, mountPath))
   } catch (e) {}
 
   const pageOptions = {
@@ -38,7 +38,7 @@ export const createPages = async options => {
 
   await Promise.all(
     Object.entries(Pages).map(([editorPage, fileName]) => {
-      const pathToFile = resolveToCWD('/pages', mountPath, `${fileName}.js`)
+      const pathToFile = resolveToCWD(options.initPath, mountPath, `${fileName}.js`)
       const file = pageTemplate(editorPage, pageOptions)
 
       return fs.writeFile(pathToFile, file)
@@ -46,11 +46,12 @@ export const createPages = async options => {
   )
 }
 
-export const createPreviewRoutes = async (): Promise<any> => {
+export const createPreviewRoutes = async (path: string): Promise<any> => {
+  const previewPath = path[path.length - 1] === '/' ? path + 'api' : path + '/api'
   try {
-    await fs.mkdir(resolveToCWD('/pages/api'))
+    await fs.mkdir(resolveToCWD(previewPath))
   } catch (e) {}
-  return fs.writeFile(resolveToCWD('/pages/api', 'preview.js'), previewRouteTemplate())
+  return fs.writeFile(resolveToCWD(previewPath, 'preview.js'), previewRouteTemplate())
 }
 
 export const createTipeFolder = async (folder = 'tipe'): Promise<any> => {
@@ -102,7 +103,9 @@ export const frameworks: Frameworks = {
   },
 }
 
-export const getFrameworkByName = (name: string) =>
+export const getFrameworkByName = (
+  name: string,
+): { name: string; lib: string; supported: boolean; finalSteps: string; deps: string[] } =>
   Object.keys(frameworks)
     .map(f => frameworks[f])
     .find(f => f.name === name)
@@ -123,7 +126,7 @@ export const isNext = (): boolean => detect(frameworks.next.lib)
 export const isReact = (): boolean => detect(frameworks.react.lib)
 export const isYarn = (): Promise<boolean> => fs.pathExists(resolveToCWD('yarn.lock'))
 
-export const getFramework = async () => {
+export const getFramework = async (): Promise<{ modules: string[]; name: string }> => {
   if (await isNext()) {
     return { modules: frameworks.next.deps, name: frameworks.next.name }
   } else if (await isGatsby()) {
