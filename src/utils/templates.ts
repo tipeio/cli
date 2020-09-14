@@ -42,7 +42,7 @@ export const pageTemplate = (page: string, options): string => {
   import { ${page}, WithTipePage, typography } from '@tipe/react-editor'
   import Link from 'next/link'
   import Router from 'next/router'
-  import createTipeClient from '@tipe/js'
+  import { createTipeClient } from '@tipe/js'
   import { TypographyStyle } from 'react-typography'
   let schema = require('${options.schemaPath}')
   let customFields = require('${options.customFieldsPath}')
@@ -100,7 +100,7 @@ export const pageTemplate = (page: string, options): string => {
 }
 
 export const previewRouteTemplate = (): string => {
-  return `import createTipeClient from '@tipe/js'
+  return `import { createTipeClient } from '@tipe/js'
 
 const clientOptions = {
   projectId: process.env.TIPE_PROJECT_ID,
