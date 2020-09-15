@@ -78,9 +78,9 @@ __________________________________________
 
 Check out our docs for more:
 
-${terminalLink(chalk.green('Guides'), 'https://docs.tipe.io/guides')}
-${terminalLink(chalk.green('API Reference'), 'https://docs.tipe.io/reference')}
-${terminalLink(chalk.green('Customizing the editor'), 'https://docs.tipe.io/customizing')}
+${terminalLink(chalk.green('Guides'), 'https://tipe.io/docs/guides')}
+${terminalLink(chalk.green('API Reference'), 'https://tipe.io/docs/apis')}
+${terminalLink(chalk.green('Customizing the editor'), 'https://tipe.io/docs/editor')}
 `,
     { borderColor: 'magenta', padding: 1 },
   )
