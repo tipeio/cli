@@ -14,7 +14,6 @@ import {
   writeEnvs,
   createPreviewRoutes,
 } from '../utils/detect'
-import { program } from '@caporal/core'
 import { constantCase } from 'change-case'
 import { v4 } from 'uuid'
 
