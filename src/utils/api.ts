@@ -90,7 +90,7 @@ export const createFirstProject: CreateFirstProject = async options => {
     path: 'api/cli/init',
     host: getURL(options.host),
     method: 'post',
-    payload: { name: options.name },
+    payload: { projectName: options.projectName, orgId: options.orgId, orgName: options.orgName },
     apiKey: options.apiKey,
   })
 
