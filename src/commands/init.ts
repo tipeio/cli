@@ -14,7 +14,6 @@ import {
   writeEnvs,
   createPreviewRoutes,
 } from '../utils/detect'
-import { program } from '@caporal/core'
 import { constantCase } from 'change-case'
 import { v4 } from 'uuid'
 
@@ -50,7 +49,13 @@ const promptHooks = (cliOptions: any): PromptHooks => ({
     const apiKey = config.getAuth()
     const spinner = ora(prints.creatingFirstProject).start()
     try {
-      const project = await createFirstProject({ apiKey, name: options.name, host: cliOptions.adminHost })
+      const projectOptions = {
+        apiKey,
+        projectName: options.projectName,
+        host: cliOptions.adminHost,
+        [options.orgId ? 'orgId' : 'orgName']: options.orgId ? options.orgId : options.orgName,
+      }
+      const project = await createFirstProject(projectOptions)
       spinner.succeed(prints.createdFirstProject`${project.name} ${project.environments[0].name}`)
       return project
     } catch (e) {
@@ -110,9 +115,11 @@ export const init: CommandConfig = {
 
     const spinner = ora(prints.gettingProjects).start()
     let projects
+    let organization
 
     try {
       projects = await getProjects({ host: options.adminHost, apiKey: userKey } as any)
+      organization = projects.length ? projects[0].organization : null
     } catch (e) {
       spinner.fail('Oops, could not get your projects.')
       return
@@ -120,7 +127,7 @@ export const init: CommandConfig = {
 
     spinner.succeed(prints.projectsLoaded)
 
-    const answers = await initPrompts(projects, promptHooks(options))
+    const answers = await initPrompts(projects, organization, promptHooks(options))
     const envConfig: any = {
       ...defaultOptions,
       ...options,
