@@ -2,7 +2,22 @@ import prompts from 'prompts'
 import { Project, Env, PromptHooks, ProjectConfig } from '../types'
 import chalk from 'chalk'
 
-export const initPrompts = async (projects: Project[], hooks: PromptHooks): Promise<ProjectConfig> => {
+export const initPrompts = async (
+  projects: Project[],
+  organization: string,
+  hooks: PromptHooks,
+): Promise<ProjectConfig> => {
+  let orgId = organization
+  if (!orgId) {
+    const { orgName } = await prompts({
+      type: 'text',
+      name: 'orgName',
+      message: 'Create an Organization',
+      initial: 'My Tipe Organization',
+    })
+    orgId = orgName
+  }
+
   const { selectedProject } = await prompts({
     type: 'select',
     name: 'selectedProject',
@@ -26,7 +41,12 @@ export const initPrompts = async (projects: Project[], hooks: PromptHooks): Prom
       initial: 'My Tipe Project',
     })
 
-    project = await hooks.onCreateProject({ name: projectName })
+    const onCreateProjectOptions = {
+      projectName,
+      [organization ? 'orgId' : 'orgName']: orgId,
+    }
+
+    project = await hooks.onCreateProject(onCreateProjectOptions)
     env = project.environments[0]
   } else {
     project = selectedProject

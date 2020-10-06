@@ -61,6 +61,7 @@ export interface Env {
 export interface Project {
   id: string
   name: string
+  organization: string
   environments: Env[]
 }
 
@@ -71,7 +72,7 @@ export interface NewEnv {
 }
 
 export interface OnCreateProject {
-  (options: { name: string }): Promise<Project>
+  (options: { projectName: string; orgId?: string; orgName?: string }): Promise<Project>
 }
 
 export interface OnCreateEnv {
@@ -116,7 +117,7 @@ export interface Authenticate {
 }
 
 export interface CreateFirstProject {
-  (options: { host: string; name: string; apiKey: string }): Promise<Project>
+  (options: { host: string; projectName: string; apiKey: string; orgName?: string; orgId?: string }): Promise<Project>
 }
 
 export interface GetProjects {
