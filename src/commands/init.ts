@@ -125,8 +125,6 @@ export const init: CommandConfig = {
       return
     }
 
-    spinner.succeed(prints.projectsLoaded)
-
     const answers = await initPrompts(projects, organization, promptHooks(options))
     const envConfig: any = {
       ...defaultOptions,
