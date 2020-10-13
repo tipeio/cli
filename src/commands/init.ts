@@ -49,6 +49,8 @@ const promptHooks = (cliOptions: any): PromptHooks => ({
     const apiKey = config.getAuth()
     const spinner = ora(prints.creatingFirstProject).start()
     try {
+      console.log('options', options)
+      console.log('clioptions', cliOptions)
       const projectOptions = {
         apiKey,
         projectName: options.projectName,
@@ -56,6 +58,7 @@ const promptHooks = (cliOptions: any): PromptHooks => ({
         [options.orgId ? 'orgId' : 'orgName']: options.orgId ? options.orgId : options.orgName,
       }
       const project = await createFirstProject(projectOptions)
+      console.log('project', project)
       spinner.succeed(prints.createdFirstProject`${project.name} ${project.environments[0].name}`)
       return project
     } catch (e) {
