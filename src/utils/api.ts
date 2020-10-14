@@ -103,7 +103,10 @@ export const createEnv: CreateEnv = async options => {
     host: getURL(options.host),
     method: 'post',
     apiKey: options.apiKey,
-    payload: options.environment,
+    payload: {
+      name: options.environment.name,
+      isPublic: !!options.environment.private,
+    },
   })
 
   return result

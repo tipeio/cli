@@ -7,6 +7,7 @@ export const initPrompts = async (
   organization: string,
   hooks: PromptHooks,
 ): Promise<ProjectConfig> => {
+  let env, project
   let orgId = organization
   if (!orgId) {
     const { orgName } = await prompts({
@@ -16,24 +17,7 @@ export const initPrompts = async (
       initial: 'My Tipe Organization',
     })
     orgId = orgName
-  }
 
-  const { selectedProject } = await prompts({
-    type: 'select',
-    name: 'selectedProject',
-    message: 'Select or create a Project',
-    choices: [
-      { title: 'CREATE NEW PROJECT', value: { id: 0 } },
-      ...projects.map((p: Project) => ({
-        title: `${chalk.yellow(p.id)}   ${p.name}`,
-        value: p,
-      })),
-    ],
-  })
-
-  let env, project
-
-  if (selectedProject.id === 0) {
     const { projectName } = await prompts({
       type: 'text',
       name: 'projectName',
@@ -49,7 +33,36 @@ export const initPrompts = async (
     project = await hooks.onCreateProject(onCreateProjectOptions)
     env = project.environments[0]
   } else {
-    project = selectedProject
+    const { selectedProject } = await prompts({
+      type: 'select',
+      name: 'selectedProject',
+      message: 'Select or create a Project',
+      choices: [
+        { title: 'CREATE NEW PROJECT', value: { id: 0 } },
+        ...projects.map((p: Project) => ({
+          title: `${chalk.yellow(p.id)}   ${p.name}`,
+          value: p,
+        })),
+      ],
+    })
+
+    if (selectedProject.id === 0) {
+      const { projectName } = await prompts({
+        type: 'text',
+        name: 'projectName',
+        message: 'Give your project a name.',
+        initial: 'My Tipe Project',
+      })
+      const onCreateProjectOptions = {
+        projectName,
+        [organization ? 'orgId' : 'orgName']: orgId,
+      }
+
+      project = await hooks.onCreateProject(onCreateProjectOptions)
+      env = project.environments[0]
+    } else {
+      project = selectedProject
+    }
     const { selectedEnv } = await prompts({
       type: 'select',
       name: 'selectedEnv',
