@@ -123,7 +123,7 @@ export default async (req, res) => {
     return res.status(401).json({ message: 'Invalid secret' })
   }
 
-  const document = await tipe.getDocument({id: req.query.id, draft: true})
+  const document = await tipe.getDocument({id: req.query.id, draft: true, tipePreview: true})
 
   if (!document) {
     return res.status(401).json({ message: 'Invalid Document' })
