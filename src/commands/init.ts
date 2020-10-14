@@ -125,7 +125,11 @@ export const init: CommandConfig = {
       return
     }
 
-    spinner.succeed()
+    if (projects && projects.length > 0) {
+      spinner.succeed(prints.projectsLoaded)
+    } else {
+      spinner.succeed('No projects found')
+    }
 
     const answers = await initPrompts(projects, organization, promptHooks(options))
     const envConfig: any = {
