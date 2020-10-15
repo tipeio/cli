@@ -123,7 +123,7 @@ export default async (req, res) => {
     return res.status(401).json({ message: 'Invalid secret' })
   }
 
-  const document = await tipe.getDocument({id: req.query.id, draft: true, tipePreview: true})
+  const document = await tipe.getDocument({id: req.query.id, draft: true, preview: true})
 
   if (!document) {
     return res.status(401).json({ message: 'Invalid Document' })
@@ -134,7 +134,7 @@ export default async (req, res) => {
   })
   
   res.writeHead(307, {
-    Location: req.query.slug + '?tipePreview=true'
+    Location: req.query.slug + '?preview=true'
   })
   
   res.end()
