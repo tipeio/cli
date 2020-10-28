@@ -39,11 +39,13 @@ export const pageTemplate = (page: string, options): string => {
   import { jsx } from 'theme-ui'
   import React from 'react'
   import Head from 'next/head'
-  import { ${page}, WithTipePage, typography } from '@tipe/react-editor'
+  import dynamic from 'next/dynamic'
+  import { WithTipePage, typography } from '@tipe/react-editor'
   import Link from 'next/link'
   import Router from 'next/router'
   import { createTipeClient } from '@tipe/js'
   import { TypographyStyle } from 'react-typography'
+
   let schema = require('${options.schemaPath}')
   let customFields = require('${options.customFieldsPath}')
 
@@ -54,6 +56,9 @@ export const pageTemplate = (page: string, options): string => {
   if (schema.default) {
     schema = schema.default
   }
+
+  const TipePage = dynamic(() => import('@tipe/react-editor').then(mod => mod.${page}), { ssr: false })
+  const ${page} = props => <TipePage {...props} />
   
   const client = createTipeClient({
     environment: '${options.environment}',
@@ -88,14 +93,7 @@ export const pageTemplate = (page: string, options): string => {
     },
   })
 
-  export default () => {
-    return (
-      <div>
-        <TypographyStyle typography={typography} />
-        <Page />
-      </div>
-    )
-  }
+  export default Page
 `
 }
 
