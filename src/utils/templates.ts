@@ -1,3 +1,63 @@
+export const previewErrorHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <style>
+    body * {
+      box-sizing: border-box;
+      font-family: Helvetica;
+    }
+
+    body, html {
+      margin: 0px;
+      padding: 0px;
+    }
+
+    main {
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      padding: 50px;
+    }
+
+    .content {
+      width: 100%;
+      max-width: 800px;
+      padding: 20px;
+    }
+
+    figure {
+      margin: 0px;
+      margin-bottom: 20px;
+      padding: 0px;
+      max-width: 150px;
+    }
+
+    img {
+      width: 100%;
+    }
+
+    span {
+      font-size: 22px;
+    }
+  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tipe Preview Error</title>
+</head>
+<body>
+  <main>
+    <div class="content">
+      <figure>
+        <img src="https://images.tipe.io/internal/fullblack.svg" alt="tipe">
+      </figure>
+      <span>Oh snap! We're having some issues showing this preview. Try again.</span>
+    </div>
+  </main>
+</body>
+</html>
+`
 /**
  * Create your schema here
  */
@@ -121,21 +181,25 @@ export default async (req, res) => {
     return res.status(401).json({ message: 'Invalid secret' })
   }
 
-  const document = await tipe.getDocument({id: req.query.id, draft: true, preview: true})
+  try {
+    const document = await tipe.getDocument({id: req.query.id, draft: true, preview: true})
+  
+    if (!document) {
+      return res.status(401).json({ message: 'Invalid Document' })
+    }
+  
+    res.setPreviewData({}, {
+      maxAge: 30,
+    })
+    
+    res.writeHead(307, {
+      Location: req.query.slug + '?preview=true'
+    })
 
-  if (!document) {
-    return res.status(401).json({ message: 'Invalid Document' })
+    res.end()
+  } catch (e) {
+    res.status(500).send(\`${previewErrorHtml}\`)
   }
-
-  res.setPreviewData({}, {
-    maxAge: 30,
-  })
-  
-  res.writeHead(307, {
-    Location: req.query.slug + '?preview=true'
-  })
-  
-  res.end()
 }
   `
 }
