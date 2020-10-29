@@ -142,7 +142,7 @@ export default async (req, res) => {
   }
 }
 
-function previewErrorHtml(message: string) { 
+function previewErrorHtml(message) { 
   return \`
     <!DOCTYPE html>
     <html lang="en">
