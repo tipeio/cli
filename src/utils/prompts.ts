@@ -10,14 +10,6 @@ export const initPrompts = async (
   let env, project
   let orgId = organization
   if (!orgId) {
-    const { orgName } = await prompts({
-      type: 'text',
-      name: 'orgName',
-      message: 'Create an Organization',
-      initial: 'My Tipe Organization',
-    })
-    orgId = orgName
-
     const { projectName } = await prompts({
       type: 'text',
       name: 'projectName',
@@ -53,13 +45,45 @@ export const initPrompts = async (
         message: 'Give your project a name.',
         initial: 'My Tipe Project',
       })
-      const onCreateProjectOptions = {
+
+      let onCreateProjectOptions = {
         projectName,
         [organization ? 'orgId' : 'orgName']: orgId,
       }
 
-      project = await hooks.onCreateProject(onCreateProjectOptions)
-      env = project.environments[0]
+      const { selectedOrg } = await prompts({
+        type: 'select',
+        name: 'selectedOrg',
+        message: 'Create or select an Organization',
+        choices: [
+          { title: 'CREATE NEW ORGANIZATION', value: { id: 0 } },
+          {
+            title: `${chalk.yellow(orgId)}`,
+            value: orgId,
+          },
+        ],
+      })
+
+      if (selectedOrg.id === 0) {
+        const { orgName } = await prompts({
+          type: 'text',
+          name: 'orgName',
+          message: 'Give your organization a name.',
+          initial: 'production',
+        })
+        orgId = orgName
+
+        onCreateProjectOptions = {
+          projectName,
+          orgName: orgName,
+        }
+
+        project = await hooks.onCreateProject(onCreateProjectOptions)
+        env = project.environments[0]
+      } else {
+        project = await hooks.onCreateProject(onCreateProjectOptions)
+        env = project.environments[0]
+      }
     } else {
       project = selectedProject
     }

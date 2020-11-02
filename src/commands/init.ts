@@ -88,6 +88,8 @@ export const init: CommandConfig = {
     if (userKey) {
       validKey = await checkAPIKey({ host: options.adminHost, apiKey: userKey } as any)
     }
+    let projects
+    let organization
 
     if (!userKey || !validKey) {
       const spinner = ora(prints.openingAuth).start()
@@ -111,21 +113,18 @@ export const init: CommandConfig = {
       spinner.succeed(prints.authenticated`${user.user.email}`)
     } else {
       console.log(prints.foundAuth)
+
+      const spinner = ora(prints.gettingProjects).start()
+
+      try {
+        projects = await getProjects({ host: options.adminHost, apiKey: userKey } as any)
+        organization = projects.length ? projects[0].organization : null
+      } catch (e) {
+        spinner.fail('Oops, could not get your projects.')
+        return
+      }
+      spinner.succeed()
     }
-
-    const spinner = ora(prints.gettingProjects).start()
-    let projects
-    let organization
-
-    try {
-      projects = await getProjects({ host: options.adminHost, apiKey: userKey } as any)
-      organization = projects.length ? projects[0].organization : null
-    } catch (e) {
-      spinner.fail('Oops, could not get your projects.')
-      return
-    }
-
-    spinner.succeed()
 
     const answers = await initPrompts(projects, organization, promptHooks(options))
     const envConfig: any = {
