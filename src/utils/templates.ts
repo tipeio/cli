@@ -35,8 +35,6 @@ export const fieldsTemplate: any = {
 
 export const pageTemplate = (page: string, options): string => {
   return `
-  /** @jsx jsx */
-  import { jsx } from 'theme-ui'
   import React from 'react'
   import Head from 'next/head'
   import dynamic from 'next/dynamic'
