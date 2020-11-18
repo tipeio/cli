@@ -11,13 +11,18 @@ import {
   APIConfig,
   AuthResult,
   GetAuthToken,
-  CreateFirstProject,
+  CreateProject,
   GetProjects,
   CheckAPIKey,
   RetrieveAPIKeys,
   ApiKey,
   APIError,
   HTTPMethod,
+  GetOrgs,
+  Organziation,
+  CreateOrg,
+  InitAccountAPIArgs,
+  InitAccountResult,
 } from '../types'
 
 const PROD_URL = 'https://api.admin.tipe.io'
@@ -74,6 +79,7 @@ export const checkAPIKey: CheckAPIKey = async options => {
 
   return true
 }
+
 export const getProjects: GetProjects = async (options): Promise<Project[]> => {
   const result = await api<Project[]>({
     path: 'api/projects',
@@ -85,31 +91,23 @@ export const getProjects: GetProjects = async (options): Promise<Project[]> => {
   return result
 }
 
-export const createFirstProject: CreateFirstProject = async options => {
-  const result = await api<Project>({
+export const getOrganizations: GetOrgs = async options => {
+  return api<{ orgs: Organziation[] }>({
+    path: 'api/organizations',
+    host: getURL(options.host),
+    apiKey: options.apiKey,
+    method: 'get',
+  })
+}
+
+export const initAccount = async (options: InitAccountAPIArgs) => {
+  return api<InitAccountResult>({
     path: 'api/cli/init',
     host: getURL(options.host),
     method: 'post',
-    payload: { projectName: options.projectName, orgId: options.orgId, orgName: options.orgName },
+    payload: options.body,
     apiKey: options.apiKey,
   })
-
-  return result
-}
-
-export const createEnv: CreateEnv = async options => {
-  const result = await api<Env>({
-    path: `api/${options.environment.project}/createEnvironment`,
-    host: getURL(options.host),
-    method: 'post',
-    apiKey: options.apiKey,
-    payload: {
-      name: options.environment.name,
-      isPublic: !!options.environment.private,
-    },
-  })
-
-  return result
 }
 
 export const getAuthToken: GetAuthToken = async options => {

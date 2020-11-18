@@ -3,6 +3,7 @@ import fs from 'fs-extra'
 import { Frameworks, Framework } from '../types'
 import { schemaTemplate, fieldsTemplate, pageTemplate, previewRouteTemplate } from './templates'
 import prints from './prints'
+import { normalizeUrl } from './formatters'
 
 const Pages = {
   IndexPage: 'index',
@@ -18,7 +19,6 @@ const hasTipeFolder = (folder: string): Promise<boolean> => fs.pathExists(resolv
 const hasSchema = (folder: string): Promise<boolean> => fs.pathExists(resolveToCWD(folder, 'schema.js'))
 const hasFieldsFolder = (folder: string): Promise<boolean> => fs.pathExists(resolveToCWD(folder, 'fields'))
 const hasFields = (folder: string): Promise<boolean> => fs.pathExists(resolveToCWD(folder, 'fields', 'index.js'))
-const normalizeUrl = (url: string): string => url.replace(/^\/|\/$/g, '')
 
 export const createPages = async (options: any): Promise<void> => {
   const schemaPath = '../../tipe/schema'

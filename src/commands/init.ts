@@ -3,9 +3,9 @@ import { asyncWrap } from '../utils/async'
 import config from '../utils/config'
 import prints from '../utils/prints'
 import { installModules } from '../utils/install'
-import { initPrompts } from '../utils/prompts'
+import { askInitQuestions } from '../utils/prompts'
 import { globalOptions } from '../utils/options'
-import { CommandConfig, PromptHooks, Env, Project } from '../types'
+import { CommandConfig, InitAccountResult, InitPromptAnswers } from '../types'
 import {
   getFramework,
   createTipeFolder,
@@ -16,17 +16,9 @@ import {
 } from '../utils/detect'
 import { constantCase } from 'change-case'
 import { v4 } from 'uuid'
-
-// import { greenCheck } from '../utils/symbols'
-import {
-  checkAPIKey,
-  getProjects,
-  getAuthToken,
-  authenticate,
-  openAuthWindow,
-  createFirstProject,
-  createEnv,
-} from '../utils/api'
+import { checkAPIKey, getAuthToken, authenticate, openAuthWindow, getOrganizations, initAccount } from '../utils/api'
+import { greenCheck } from '../utils/symbols'
+import { normalizeUrl } from '../utils/formatters'
 
 const defaultOptions: any = {
   environment: 'Production',
@@ -44,53 +36,58 @@ const excludeEnvIfDefault: any = {
   assetHost: true,
 }
 
-const promptHooks = (cliOptions: any): PromptHooks => ({
-  async onCreateProject(options): Promise<Project> {
-    const apiKey = config.getAuth()
-    const spinner = ora(prints.creatingFirstProject).start()
-    try {
-      const projectOptions = {
-        apiKey,
-        projectName: options.projectName,
-        host: cliOptions.adminHost,
-        [options.orgId ? 'orgId' : 'orgName']: options.orgId ? options.orgId : options.orgName,
-      }
-      const project = await createFirstProject(projectOptions)
-      spinner.succeed(prints.createdFirstProject`${project.name} ${project.environments[0].name}`)
-      return project
-    } catch (e) {
-      spinner.fail('Oops, we could not create you a Project')
-    }
-  },
-  async onCreateEnv(options): Promise<Env> {
-    const spinner = ora(prints.creatingEnv).start()
-    const apiKey = config.getAuth()
+const createInitFn = (cliOptions: any) => async (
+  promptOptions: InitPromptAnswers,
+  isNewUser?: boolean,
+): Promise<InitAccountResult> => {
+  const apiKey = config.getAuth()
 
-    const environment = await createEnv({ apiKey, host: cliOptions.adminHost, environment: options })
+  const spinner = ora(`...Saving`).start()
 
-    spinner.succeed(prints.createdEnv)
-    return environment
-  },
-})
+  try {
+    const result = await initAccount({ apiKey, host: cliOptions.adminHost, body: promptOptions })
+    spinner.succeed(isNewUser ? 'New account setup complete' : 'Saved')
+    return result
+  } catch (e) {
+    spinner.fail('Could not finish setup. Try again.')
+  }
+}
 
 export const init: CommandConfig = {
   command: 'init',
   default: true,
   description: 'Create a new Tipe project',
-  options: [...globalOptions],
+  options: [
+    ...globalOptions,
+    {
+      option: '--mountPath [mountPath]',
+      description: 'route to mount the content dashbaord',
+      config: {
+        validator: path => {
+          return normalizeUrl(path + '')
+        },
+        default: 'cms',
+      },
+    },
+  ],
   alias: [''],
   async action({ options }) {
     console.log(prints.header)
     console.log(prints.intro)
+
     let userKey = config.getAuth()
     let validKey = false
+    let orgs
 
+    // check api key is a valid key
     if (userKey) {
       validKey = await checkAPIKey({ host: options.adminHost, apiKey: userKey } as any)
     }
-    let projects
-    let organization
 
+    /**
+     * User is not authenticated
+     * so prompt then to log in first
+     */
     if (!userKey || !validKey) {
       const spinner = ora(prints.openingAuth).start()
       const [error, token] = await asyncWrap(getAuthToken({ host: options.adminHost } as any))
@@ -99,6 +96,7 @@ export const init: CommandConfig = {
         return spinner.fail(prints.authError)
       }
 
+      // opens browser to auth
       await openAuthWindow({ token, host: options.adminHost } as any)
 
       spinner.text = prints.waitingForAuth
@@ -108,25 +106,36 @@ export const init: CommandConfig = {
         return spinner.fail(prints.authError)
       }
 
+      // sets the api key on the users computer for next time
       config.setAuth(user.key)
       userKey = user.key
-      spinner.succeed(prints.authenticated`${user.user.email}`)
+      spinner.succeed(`Authenticated`)
     } else {
-      console.log(prints.foundAuth)
-
-      const spinner = ora(prints.gettingProjects).start()
-
-      try {
-        projects = await getProjects({ host: options.adminHost, apiKey: userKey } as any)
-        organization = projects.length ? projects[0].organization : null
-      } catch (e) {
-        spinner.fail('Oops, could not get your projects.')
-        return
-      }
-      spinner.succeed()
+      console.log(`${greenCheck} Welcome back`)
     }
 
-    const answers = await initPrompts(projects, organization, promptHooks(options))
+    const orgSpinner = ora('...Fetching your account info').start()
+
+    try {
+      const results = await getOrganizations({ host: options.adminHost, apiKey: userKey } as any)
+      orgs = results.orgs
+    } catch (e) {
+      orgSpinner.fail('Oops, could not fetch your account.')
+      return
+    }
+
+    orgSpinner.succeed(orgs.length ? 'Account found' : 'New user detected')
+
+    const { modules, name } = await getFramework()
+    console.log(`${greenCheck} ${name} app detected`)
+
+    const handleInitAccount = createInitFn(options)
+    const answers = await askInitQuestions(orgs, handleInitAccount)
+
+    /**
+     * Prepare variables to be written
+     * to the users .env file
+     */
     const envConfig: any = {
       ...defaultOptions,
       ...options,
@@ -135,10 +144,18 @@ export const init: CommandConfig = {
     }
 
     const envs = Object.keys(envConfig)
+      /**
+       * remove any vaiables that were not set by the user
+       * and has defaults already
+       */
       .filter(env => {
         const value = envConfig[env]
         return !(excludeEnvIfDefault[env] && value === defaultOptions[env])
       })
+      /**
+       * the prevew secret env has to be read on the front
+       * end and needs a prefix so next js can allow that
+       */
       .map(env => {
         if (env === 'previewSecret') {
           return {
@@ -152,19 +169,13 @@ export const init: CommandConfig = {
         }
       })
 
-    let installSpinner
+    let installSpinner = ora(`Integrating Tipe with ${name}`).start()
     let envError
-    installSpinner = ora(prints.detectingFramework).start()
-
-    const { modules, name } = await getFramework()
 
     if (name) {
-      installSpinner.succeed(`${name} app detected`)
       let schemaModules
 
       try {
-        installSpinner = ora(`Setting up tipe for ${name}`).start()
-
         if (answers.writeEnv) {
           const result = await writeEnvs(envs)
           envError = result.error
@@ -173,10 +184,10 @@ export const init: CommandConfig = {
         await createPages(envConfig)
         await createPreviewRoutes()
         schemaModules = await createTipeFolder()
-        installSpinner.succeed(`Tipe setup with ${name}`)
+        installSpinner.succeed(`Setup complete`)
       } catch (e) {
         console.log(e)
-        installSpinner.fail('Could not setup tipe integration')
+        installSpinner.fail('Could not setup Tipe integration')
         return
       }
 
@@ -197,7 +208,9 @@ export const init: CommandConfig = {
         }
       } catch (e) {
         console.log(e)
-        installSpinner.fail('Could not install modules')
+        installSpinner.fail(
+          'Could not install modules.\nTipe dependencies are in your packages.json,\nso you can just run "npm install" or "yarn"',
+        )
         return
       }
     } else {

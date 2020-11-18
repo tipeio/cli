@@ -96,7 +96,7 @@ export const pageTemplate = (page: string, options): string => {
 }
 
 export const previewRouteTemplate = (): string => {
-  return `import { createTipeClient } from '@tipe/js'
+  return `import { previewHandler } from '@tipe/next'
 
 const clientOptions = {
   projectId: process.env.TIPE_PROJECT_ID,
@@ -107,100 +107,7 @@ const clientOptions = {
   key: process.env.TIPE_API_KEY || '',
 }
 
-const tipe = createTipeClient(clientOptions)
-
 export default async (req, res) => {
-  
-  if ( !req.query.slug || !req.query.id) {
-    return res.status(400).send(\`\$\{previewErrorHtml('Cannot view preview. Invalid preview')\}\`)
-  }
-
-  if( req.query.secret !== process.env.NEXT_PUBLIC_TIPE_PREVIEW_SECRET) {
-    return res.status(401).send(\`\$\{previewErrorHtml('Cannot view preview. Invalid preview secret.')\}\`)
-  }
-
-  try {
-    const document = await tipe.getDocument({id: req.query.id, draft: true, preview: true})
-  
-    if (!document) {
-      return res.status(401).json(\`\$\{previewErrorHtml('Cannot view preview. Document does not exist.')\}\`)
-    }
-  
-    res.setPreviewData({}, {
-      maxAge: 30,
-    })
-    
-    res.writeHead(307, {
-      Location: req.query.slug + '?preview=true'
-    })
-
-    res.end()
-  } catch (e) {
-    res.status(500).send(\`\$\{previewErrorHtml("Oh snap! We're having some issues showing this preview. Try again.")\}\`)
-  }
-}
-
-function previewErrorHtml(message) { 
-  return \`
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <style>
-        body * {
-          box-sizing: border-box;
-          font-family: Helvetica;
-        }
-
-        body, html {
-          margin: 0px;
-          padding: 0px;
-        }
-
-        main {
-          height: 100vh;
-          width: 100vw;
-          display: flex;
-          justify-content: center;
-          padding: 50px;
-        }
-
-        .content {
-          width: 100%;
-          max-width: 800px;
-          padding: 20px;
-        }
-
-        figure {
-          margin: 0px;
-          margin-bottom: 20px;
-          padding: 0px;
-          max-width: 150px;
-        }
-
-        img {
-          width: 100%;
-        }
-
-        span {
-          font-size: 22px;
-        }
-      </style>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Tipe Preview Error</title>
-    </head>
-    <body>
-      <main>
-        <div class="content">
-          <figure>
-            <img src="https://images.tipe.io/internal/fullblack.svg" alt="tipe">
-          </figure>
-          <span>\$\{message\}</span>
-        </div>
-      </main>
-    </body>
-    </html>
-  \`
-}
-  `
+  previewHandler(req, res, clientOptions)
+}`
 }
