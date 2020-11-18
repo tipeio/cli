@@ -40,6 +40,7 @@ export interface CommandOption {
   option: string
   description: string
   config?: { validator?: any; default?: any; required?: boolean }
+  default?: any
 }
 
 export interface CommandConfig {
@@ -65,6 +66,37 @@ export interface Project {
   environments: Env[]
 }
 
+export interface Organziation {
+  id: string
+  name: string
+  projects: Project[]
+}
+
+export interface InitAccountAPIArgs {
+  host: string
+  apiKey: string
+  body: InitPromptAnswers
+}
+
+export interface InitPromptAnswers {
+  projectName?: string
+  projectId?: string
+  orgName?: string
+  orgId?: string
+  envName?: string
+  envId?: string
+  envPrivate?: boolean
+}
+export interface InitAccountResult {
+  org: Organziation
+  project: Project
+  env: Env
+}
+
+export interface HandleInitAccountFn {
+  (options: InitPromptAnswers, isNewUser?: boolean): Promise<InitAccountResult>
+}
+
 export interface NewEnv {
   private: boolean
   name: string
@@ -72,7 +104,7 @@ export interface NewEnv {
 }
 
 export interface OnCreateProject {
-  (options: { projectName: string; orgId?: string; orgName?: string }): Promise<Project>
+  (options: { projectName: string; orgId: string }): Promise<Project>
 }
 
 export interface OnCreateEnv {
@@ -90,9 +122,7 @@ export interface PromptConfig {
   hooks?: PromptHooks
 }
 
-export interface ProjectConfig {
-  project: Project
-  env: Env
+export interface ProjectConfig extends InitAccountResult {
   writeEnv: boolean
 }
 
@@ -116,12 +146,20 @@ export interface Authenticate {
   (options: { host: string; token: string }): Promise<AuthResult>
 }
 
-export interface CreateFirstProject {
-  (options: { host: string; projectName: string; apiKey: string; orgName?: string; orgId?: string }): Promise<Project>
+export interface CreateProject {
+  (options: { host: string; projectName: string; apiKey: string; orgId: string }): Promise<Project>
+}
+
+export interface CreateOrg {
+  (options: { host: string; name: string; apiKey: string }): Promise<Organziation>
 }
 
 export interface GetProjects {
   (options: { host: string; apiKey: string }): Promise<Project[]>
+}
+
+export interface GetOrgs {
+  (options: { host: string; apiKey: string }): Promise<{ orgs: Organziation[] }>
 }
 
 export interface CheckAPIKey {

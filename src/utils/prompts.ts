@@ -1,106 +1,137 @@
 import prompts from 'prompts'
-import { Project, Env, PromptHooks, ProjectConfig } from '../types'
+import {
+  Project,
+  Env,
+  ProjectConfig,
+  Organziation,
+  HandleInitAccountFn,
+  InitPromptAnswers,
+  InitAccountResult,
+} from '../types'
 import chalk from 'chalk'
 
-export const initPrompts = async (
-  projects: Project[],
-  organization: string,
-  hooks: PromptHooks,
+export const askInitQuestions = async (
+  orgs: Organziation[],
+  handleInitAccount: HandleInitAccountFn,
 ): Promise<ProjectConfig> => {
-  let env, project
-  let orgId = organization
-  if (!orgId) {
-    const { projectName } = await prompts({
-      type: 'text',
-      name: 'projectName',
-      message: 'Give your project a name.',
-      initial: 'My Tipe Project',
-    })
+  let result: InitAccountResult
+  let org, project
 
-    const onCreateProjectOptions = {
-      projectName,
-      [organization ? 'orgId' : 'orgName']: orgId,
-    }
-
-    project = await hooks.onCreateProject(onCreateProjectOptions)
-    env = project.environments[0]
+  // users first org must be a personal org. No need to ask
+  if (!orgs.length) {
+    result = await handleInitAccount(
+      {
+        orgName: 'Personal',
+        projectName: 'My First Project',
+        envName: 'Prodcution',
+      },
+      true,
+    )
   } else {
-    const { selectedProject } = await prompts({
+    const config: InitPromptAnswers = {}
+
+    const { selectedOrg } = await prompts({
       type: 'select',
-      name: 'selectedProject',
-      message: 'Select or create a Project',
+      name: 'selectedOrg',
+      message: 'Select or create an Organization',
       choices: [
-        { title: 'CREATE NEW PROJECT', value: { id: 0 } },
-        ...projects.map((p: Project) => ({
-          title: `${chalk.yellow(p.id)}   ${p.name}`,
-          value: p,
+        { title: 'Create a new Organization', value: { id: 0, projects: [] } },
+        ...orgs.map((org: Organziation) => ({
+          title: chalk.yellow(org.name),
+          value: org,
         })),
       ],
     })
 
-    if (selectedProject.id === 0) {
-      const { projectName } = await prompts({
+    if (selectedOrg.id === 0) {
+      const { orgName } = await prompts({
         type: 'text',
-        name: 'projectName',
-        message: 'Give your project a name.',
-        initial: 'My Tipe Project',
+        name: 'orgName',
+        message: 'Give your Organization a name.',
+        initial: 'My Organization',
       })
 
-      let onCreateProjectOptions = {
-        projectName,
-        [organization ? 'orgId' : 'orgName']: orgId,
-      }
+      config.orgName = orgName
+    } else {
+      config.orgId = selectedOrg.id || selectedOrg._id
+      org = selectedOrg
+    }
 
-      const { selectedOrg } = await prompts({
+    if (org && org.projects.length) {
+      const { selectedProject } = await prompts({
         type: 'select',
-        name: 'selectedOrg',
-        message: 'Create or select an Organization',
+        name: 'selectedProject',
+        message: 'Select or create a Project',
         choices: [
-          { title: 'CREATE NEW ORGANIZATION', value: { id: 0 } },
-          {
-            title: `${chalk.yellow(orgId)}`,
-            value: orgId,
-          },
+          { title: 'Create a new Project', value: { id: 0, environments: [] } },
+          ...selectedOrg.projects.map((p: Project) => ({
+            title: chalk.yellow(p.name),
+            value: p,
+          })),
         ],
       })
 
-      if (selectedOrg.id === 0) {
-        const { orgName } = await prompts({
+      if (selectedProject.id === 0) {
+        const { projectName } = await prompts({
           type: 'text',
-          name: 'orgName',
-          message: 'Give your organization a name.',
-          initial: 'production',
+          name: 'projectName',
+          message: 'Give your project a name.',
+          initial: 'My Tipe Project',
         })
-        orgId = orgName
 
-        onCreateProjectOptions = {
-          projectName,
-          orgName: orgName,
-        }
-
-        project = await hooks.onCreateProject(onCreateProjectOptions)
-        env = project.environments[0]
+        config.projectName = projectName
       } else {
-        project = await hooks.onCreateProject(onCreateProjectOptions)
-        env = project.environments[0]
+        config.projectId = selectedProject.id || selectedProject._id
+        project = selectedProject
       }
     } else {
-      project = selectedProject
-    }
-    const { selectedEnv } = await prompts({
-      type: 'select',
-      name: 'selectedEnv',
-      message: 'Select or create an Environment',
-      choices: [
-        { title: 'CREATE NEW ENVIRONMENT', value: { id: 0 } },
-        ...project.environments.map((e: Env) => ({
-          title: `${chalk.yellow(e.id)}   ${e.name} (${e.private ? chalk.red('Private') : chalk.green('Public')})`,
-          value: e,
-        })),
-      ],
-    })
+      const { projectName } = await prompts({
+        type: 'text',
+        name: 'projectName',
+        message: 'Name your first Project',
+        initial: 'My Tipe Project',
+      })
 
-    if (selectedEnv.id === 0) {
+      config.projectName = projectName
+    }
+
+    if (project && project.environments.length) {
+      const { selectedEnv } = await prompts({
+        type: 'select',
+        name: 'selectedEnv',
+        message: 'Select or create an Environment',
+        choices: [
+          { title: 'Create a new Environment', value: { id: 0 } },
+          ...project.environments.map((e: Env) => ({
+            title: `${e.name} (${e.private ? chalk.red('Private') : chalk.green('Public')})`,
+            value: e,
+          })),
+        ],
+      })
+
+      if (selectedEnv.id === 0) {
+        const { envName } = await prompts({
+          type: 'text',
+          name: 'envName',
+          message: 'Give your environment a name.',
+          initial: 'production',
+        })
+
+        const { envPrivate } = await prompts({
+          type: 'toggle',
+          name: 'envPrivate',
+          message: `Make "${envName}" private? (API Key required to access content)`,
+          initial: false,
+          inactive: 'no',
+          active: 'yes',
+        })
+
+        config.envName = envName
+        config.envPrivate = envPrivate
+      } else {
+        config.envId = selectedEnv.id || selectedEnv._id
+      }
+    } else {
       const { envName } = await prompts({
         type: 'text',
         name: 'envName',
@@ -111,24 +142,27 @@ export const initPrompts = async (
       const { envPrivate } = await prompts({
         type: 'toggle',
         name: 'envPrivate',
-        message: `Make "${envName}" private? (Will need an API to get content)`,
+        message: `Make "${envName}" private? (API Key required to access content)`,
         initial: false,
         inactive: 'no',
         active: 'yes',
       })
 
-      env = await hooks.onCreateEnv({ name: envName, project: project.id, private: envPrivate })
-    } else {
-      env = selectedEnv
+      config.envName = envName
+      config.envPrivate = envPrivate
     }
+
+    result = await handleInitAccount(config)
   }
 
   const { writeEnv } = await prompts({
-    type: 'confirm',
+    type: 'toggle',
     name: 'writeEnv',
-    message: 'Add tipe env variables to your .env file?',
+    message: 'Should we add tipe env variables to your .env file?',
     initial: true,
+    inactive: 'no',
+    active: 'yes',
   })
 
-  return { project, env, writeEnv }
+  return { ...result, writeEnv }
 }
