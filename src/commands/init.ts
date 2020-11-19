@@ -49,7 +49,9 @@ const createInitFn = (cliOptions: any) => async (
     spinner.succeed(isNewUser ? 'New account setup complete' : 'Saved')
     return result
   } catch (e) {
-    spinner.fail('Could not finish setup. Try again.')
+    const { message } = JSON.parse(e.response.body || '{}')
+    spinner.fail(message || 'Could not finish setup. Try again.')
+    throw new Error()
   }
 }
 
