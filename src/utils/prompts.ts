@@ -23,7 +23,7 @@ export const askInitQuestions = async (
         {
           orgName: 'Personal',
           projectName: 'My First Project',
-          envName: 'Prodcution',
+          envName: 'Production',
         },
         true,
       )
