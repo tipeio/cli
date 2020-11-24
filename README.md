@@ -12,7 +12,31 @@ For documentation on getting started please visit [documentaion](https://tipe.io
 `yarn i @tipe/cli`
 
 ### NPM 
-`npm i @tipe/cli`
+`npm i @tipe/cli -g`
+
+
+## Commands
+
+### Init
+`tipe init` will get you started. after the init command has finished, you will have the following:
+
+* A account on Tipe
+* A Tipe project
+* An environment for your project
+* Some seeded content in your environment
+* A seeded schema in your app directory that matches the seeeded content in tipe.
+* The Tipe editor installed into your app and ready to be used.
+
+### Auth
+`tipe auth` will check to see if youre signed in. If not you'll be prompted to either sign in or sign up.
+
+### Signout
+`tipe signout` will sign you out of tipe.
+
+### Keys
+`tipe keys :name-of-your-key` will take your through the proccess of creating an API key.
+
+`tipe keys --list` will list all of your avaliable APi keys.
 
 
 
