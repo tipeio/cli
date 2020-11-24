@@ -3,7 +3,7 @@ Tipe CLI to manage projects and get started.
 
 ## Documentation
 
-For documentation on getting started please visit [documentaion][https://tipe.io/docs/getting-started/cli]
+For documentation on getting started please visit [documentaion](https://tipe.io/docs/getting-started/cli)
 
 
 ## Instalation
