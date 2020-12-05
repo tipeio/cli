@@ -1,24 +1,33 @@
 /**
  * Create your schema here
  */
+
+const TipeDemoDoc = 'tipeDemoPage'
+
 export const schemaTemplate = {
   deps: ['@tipe/js'],
-  string: `const { createSchema } = require('@tipe/js')
+  string: `const { createSchema, TipeFields } = require('@tipe/js')
 
 module.exports = createSchema([
   /**
    * Modify and add your schema here
    * */
   {
-    id: 'homePage',
+    id: '${TipeDemoDoc}',
     type: 'document',
-    label: 'Home Page',
-    previewPath: '/',
+    label: 'Tipe Demo Page',
+    previewPath: '/tipe-demo',
     fields: [
       {
         id: 'title',
         type: 'string',
         label: 'Title'
+      },
+      {
+        id: 'content',
+        type: 'string',
+        label: 'Content',
+        component: TipeFields.markdown
       }
     ]
   },
@@ -31,6 +40,42 @@ export const fieldsTemplate: any = {
   string: `module.exports = {
     // Add any custom fields here
   }`,
+}
+
+export const demoTemplate = (): string => {
+  return `
+    import Head from 'next/head'
+    import styles from '../styles/Home.module.css'
+    import { getTipe } from '@tipe/next'
+
+    export default function TipeDemo({ documents }) {
+      return(
+        <div className={styles.container}>
+          <Head>
+            <title>Create Next App</title>
+            <link rel="icon" href="/favicon.ico" />
+          </Head>
+
+          <main className={styles.main}>
+            <h1 className={styles.title}>
+              Welcome to <a href="https://nextjs.org">{documents[0].fields.title}</a>
+            </h1>
+
+            <p className={styles.description}>
+              Get started by editing{' '}
+              <code className={styles.code}>pages/index.js</code>
+            </p>
+          </main>
+        </div>
+      )
+    }
+
+    export const getStaticProps = async (ctx) => {
+      const { tipe } = getTipe(ctx)
+      const { documents } = await tipe.getDocuments({ type: '${TipeDemoDoc}' })
+      return { props: { documents } }
+    }
+  `
 }
 
 export const pageTemplate = (page: string, options): string => {
