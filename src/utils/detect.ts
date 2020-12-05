@@ -1,7 +1,7 @@
 import path from 'path'
 import fs from 'fs-extra'
 import { Frameworks, Framework } from '../types'
-import { schemaTemplate, fieldsTemplate, pageTemplate, previewRouteTemplate } from './templates'
+import { schemaTemplate, fieldsTemplate, pageTemplate, demoTemplate, previewRouteTemplate } from './templates'
 import prints from './prints'
 import { normalizeUrl } from './formatters'
 
@@ -49,6 +49,8 @@ export const createPages = async (options: any): Promise<void> => {
       return fs.writeFile(pathToFile, file)
     }),
   )
+
+  await fs.writeFile(resolveToCWD(initPath, `tipe-demo.js`), demoTemplate())
 }
 
 export const createPreviewRoutes = async (): Promise<any> => {
