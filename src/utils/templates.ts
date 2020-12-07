@@ -13,6 +13,35 @@ module.exports = createSchema([
    * Modify and add your schema here
    * */
   {
+    id: 'InfoCard',
+    type: 'object',
+    label: 'Information Card',
+    fields: [
+      {
+        id: 'link',
+        type: 'string',
+        label: 'Link'
+      },
+      {
+        id: 'title',
+        type: 'string',
+        label: 'Title'
+      },
+      {
+        id: 'body',
+        type: 'string',
+        label: 'Body',
+        component: TipeFields.markdown,
+      }
+    ]
+  },
+  {
+    id: 'CardGrid',
+    type: 'array',
+    label: 'Information Card Grid',
+    contains: [{ type: 'InfoCard', label: 'Information Card' }]
+  },
+  {
     id: '${TipeDemoDoc}',
     type: 'document',
     label: 'Tipe Demo Page',
@@ -28,6 +57,22 @@ module.exports = createSchema([
         type: 'string',
         label: 'Content',
         component: TipeFields.markdown
+      },
+      {
+        id: 'cardGrid',
+        type: 'CardGrid',
+        label: 'Information Cards',
+      },
+      {
+        id: 'logo',
+        type: 'image',
+        label: 'Logo'
+      },
+      {
+        id: 'headerColor',
+        type: 'string',
+        label: 'Header Font Color',
+        component: 'Color'
       }
     ]
   },
@@ -47,33 +92,81 @@ export const demoTemplate = (): string => {
     import Head from 'next/head'
     import styles from '../styles/Home.module.css'
     import { getTipe } from '@tipe/next'
-
-    export default function TipeDemo({ documents }) {
-      return(
+    import renderToString from 'next-mdx-remote/render-to-string'
+    import hydrate from 'next-mdx-remote/hydrate'
+    
+    export default function TipeDemo({ document }) {
+      // hydrate markdown
+      const content = hydrate(document.fields.content)
+      const cards = document.fields.cardGrid.map((card) => {
+        return (
+          <a href={card.value.link} className={styles.card} key={card.value.title}>
+            <h3>{card.value.title} &rarr;</h3>
+            <p>{hydrate(card.value.body)}</p>
+          </a>
+        )
+      })
+    
+      return (
         <div className={styles.container}>
           <Head>
             <title>Create Next App</title>
             <link rel="icon" href="/favicon.ico" />
           </Head>
-
+    
           <main className={styles.main}>
             <h1 className={styles.title}>
-              Welcome to <a href="https://nextjs.org">{documents[0].fields.title}</a>
+              Welcome to{' '}
+              <a
+                href="https://nextjs.org"
+                style={{ color: document.fields.headerColor }}
+              >
+                {document.fields.title}
+              </a>
             </h1>
-
-            <p className={styles.description}>
-              Get started by editing{' '}
-              <code className={styles.code}>pages/index.js</code>
-            </p>
+            <div className={styles.description}>{content}</div>
+    
+            <div className={styles.grid}>{cards}</div>
           </main>
+          <footer className={styles.footer}>
+            <a
+              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Powered by{' '}
+              <img
+                src={document.fields.logo.url}
+                alt="Tipe Logo"
+                className={styles.logo}
+              />
+            </a>
+          </footer>
         </div>
       )
     }
-
+    
     export const getStaticProps = async (ctx) => {
       const { tipe } = getTipe(ctx)
-      const { documents } = await tipe.getDocuments({ type: '${TipeDemoDoc}' })
-      return { props: { documents } }
+      const { documents } = await tipe.getDocuments({ type: 'tipeDemoPage' })
+    
+      const tipeDemoContent = await renderToString(documents[0].fields.content)
+      const tipeDemoCards = await Promise.all(
+        documents[0].fields.cardGrid.map(async (card) => {
+          card.value.body = await renderToString(card.value.body, {})
+          return card
+        })
+      )
+    
+      const document = {
+        fields: {
+          ...documents[0].fields,
+          content: tipeDemoContent,
+          cardGrid: tipeDemoCards,
+        },
+      }
+    
+      return { props: { document } }
     }
   `
 }
