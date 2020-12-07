@@ -31,7 +31,6 @@ module.exports = createSchema([
         id: 'body',
         type: 'string',
         label: 'Body',
-        component: TipeFields.markdown,
       }
     ]
   },
@@ -96,16 +95,8 @@ export const demoTemplate = (): string => {
     import hydrate from 'next-mdx-remote/hydrate'
     
     export default function TipeDemo({ document }) {
-      // hydrate markdown
+      // hydrate markdown https://github.com/hashicorp/next-mdx-remote
       const content = hydrate(document.fields.content)
-      const cards = document.fields.cardGrid.map((card) => {
-        return (
-          <a href={card.value.link} className={styles.card} key={card.value.title}>
-            <h3>{card.value.title} &rarr;</h3>
-            <p>{hydrate(card.value.body)}</p>
-          </a>
-        )
-      })
     
       return (
         <div className={styles.container}>
@@ -126,7 +117,20 @@ export const demoTemplate = (): string => {
             </h1>
             <div className={styles.description}>{content}</div>
     
-            <div className={styles.grid}>{cards}</div>
+            <div className={styles.grid}>
+              {document.fields.cardGrid.map((card) => {
+                return (
+                  <a
+                    href={card.value.link}
+                    className={styles.card}
+                    key={card.value.title}
+                  >
+                    <h3>{card.value.title} &rarr;</h3>
+                    <p>{card.value.body}</p>
+                  </a>
+                )
+              })}
+            </div>
           </main>
           <footer className={styles.footer}>
             <a
@@ -150,24 +154,19 @@ export const demoTemplate = (): string => {
       const { tipe } = getTipe(ctx)
       const { documents } = await tipe.getDocuments({ type: 'tipeDemoPage' })
     
-      const tipeDemoContent = await renderToString(documents[0].fields.content)
-      const tipeDemoCards = await Promise.all(
-        documents[0].fields.cardGrid.map(async (card) => {
-          card.value.body = await renderToString(card.value.body, {})
-          return card
-        })
-      )
+      // https://github.com/hashicorp/next-mdx-remote
+      const markdownSource = await renderToString(documents[0].fields.content)
     
       const document = {
         fields: {
           ...documents[0].fields,
-          content: tipeDemoContent,
-          cardGrid: tipeDemoCards,
+          content: markdownSource,
         },
       }
     
       return { props: { document } }
     }
+  
   `
 }
 
