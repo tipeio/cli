@@ -104,7 +104,7 @@ export const frameworks: Frameworks = {
     lib: 'next',
     supported: true,
     finalSteps: prints.nextJsDone,
-    deps: ['@tipe/next', '@tipe/react-editor'],
+    deps: ['@tipe/next', '@tipe/react-editor', 'next-mdx-remote'],
   },
   react: {
     name: 'React',
