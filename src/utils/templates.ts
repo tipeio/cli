@@ -245,6 +245,6 @@ const clientOptions = {
 }
 
 export default async (req, res) => {
-  previewHandler(req, res, clientOptions)
+  return previewHandler(req, res, clientOptions)
 }`
 }
