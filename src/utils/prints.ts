@@ -38,6 +38,8 @@ const noProjects = `You don't have any projects. To create one run:
 
 tipe init
 `
+const noEnvFile = 'You dont have an .env or .env.local file.'
+
 const authenticated = (_: TemplateStringsArray, email: any): string =>
   `Authentication for ${email} success 💯. Saving for next time`
 
@@ -99,6 +101,7 @@ export default {
   installing,
   waitingForAuth,
   installError,
+  noEnvFile,
   intro,
   foundAuth,
   gettingProjects,
